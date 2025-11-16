@@ -92,6 +92,19 @@
             background: white;
         }
 
+        #decay {
+            width: 120px;
+            cursor: pointer;
+        }
+
+        #decay-display {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: bold;
+            min-width: 40px;
+            display: inline-block;
+        }
+
         .keyboard {
             display: flex;
             justify-content: center;
@@ -178,6 +191,21 @@
             background: linear-gradient(to bottom, #1a1a1a 0%, #000000 100%);
         }
 
+        /* 彩色发光效果 */
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 5px var(--glow-color), 0 0 10px var(--glow-color), 0 0 15px var(--glow-color);
+            }
+            50% {
+                box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--glow-color);
+            }
+        }
+
+        .key.glowing {
+            animation: glow 0.3s ease-in-out;
+            box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--glow-color), 0 0 40px var(--glow-color);
+        }
+
         .instructions {
             background: #f8f9fa;
             padding: 20px;
@@ -250,7 +278,15 @@
                     <option value="sine">正弦波 (柔和)</option>
                     <option value="square">方波 (明亮)</option>
                     <option value="sawtooth">锯齿波 (丰富)</option>
+                    <option value="guitar">古典吉他</option>
+                    <option value="piano">古典钢琴</option>
                 </select>
+            </div>
+
+            <div class="control-group">
+                <label for="decay">声音衰减:</label>
+                <input type="range" id="decay" min="0.05" max="2.0" step="0.05" value="0.3">
+                <span id="decay-display">0.3s</span>
             </div>
         </div>
 
@@ -299,7 +335,9 @@
             <p><strong>白键:</strong> A S D F G H J (对应 C D E F G A B)</p>
             <p><strong>黑键:</strong> W E T Y U (对应 C# D# F# G# A#)</p>
             <p><strong>八度切换:</strong> 使用 + / - 按钮或鼠标点击</p>
-            <p><strong>音色:</strong> 从下拉菜单选择不同的合成器音色</p>
+            <p><strong>音色:</strong> 从下拉菜单选择不同的音色（包括古典吉他和古典钢琴）</p>
+            <p><strong>声音衰减:</strong> 调节滑块控制音符消失的时长 (0.05s - 2.0s)</p>
+            <p><strong>彩色发光:</strong> 按下按键时会显示彩色发光效果，每个音符有不同颜色</p>
         </div>
     </div>
 
@@ -310,6 +348,7 @@
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 this.currentOctave = 4;
                 this.currentTimbre = 'sine';
+                this.releaseTime = 0.3;
                 this.activeOscillators = new Map();
                 this.keyPressed = new Set();
 
@@ -345,6 +384,22 @@
                     'J': 'B'
                 };
 
+                // 每个按键的发光颜色
+                this.keyColors = {
+                    'C': '#ff0000',   // 红色
+                    'C#': '#ff8800',  // 橙色
+                    'D': '#ffff00',   // 黄色
+                    'D#': '#88ff00',  // 黄绿色
+                    'E': '#00ff00',   // 绿色
+                    'F': '#00ff88',   // 青绿色
+                    'F#': '#00ffff',  // 青色
+                    'G': '#0088ff',   // 天蓝色
+                    'G#': '#0000ff',  // 蓝色
+                    'A': '#8800ff',   // 紫色
+                    'A#': '#ff00ff',  // 品红色
+                    'B': '#ff0088'    // 玫红色
+                };
+
                 this.init();
             }
 
@@ -363,6 +418,12 @@
                     this.currentTimbre = e.target.value;
                 });
 
+                // 声音衰减控制
+                document.getElementById('decay').addEventListener('input', (e) => {
+                    this.releaseTime = parseFloat(e.target.value);
+                    document.getElementById('decay-display').textContent = this.releaseTime.toFixed(2) + 's';
+                });
+
                 // 键盘事件
                 document.addEventListener('keydown', (e) => this.handleKeyDown(e));
                 document.addEventListener('keyup', (e) => this.handleKeyUp(e));
@@ -371,20 +432,22 @@
                 document.querySelectorAll('.key').forEach(key => {
                     key.addEventListener('mousedown', () => {
                         const note = key.dataset.note;
+                        const color = this.keyColors[note];
                         this.playNote(note);
-                        key.classList.add('active');
+                        key.classList.add('active', 'glowing');
+                        key.style.setProperty('--glow-color', color);
                     });
 
                     key.addEventListener('mouseup', () => {
                         const note = key.dataset.note;
                         this.stopNote(note);
-                        key.classList.remove('active');
+                        key.classList.remove('active', 'glowing');
                     });
 
                     key.addEventListener('mouseleave', () => {
                         const note = key.dataset.note;
                         this.stopNote(note);
-                        key.classList.remove('active');
+                        key.classList.remove('active', 'glowing');
                     });
                 });
             }
@@ -430,10 +493,14 @@
             highlightKey(key, active) {
                 const keyElement = document.querySelector(`[data-key="${key}"]`);
                 if (keyElement) {
+                    const note = this.keyMap[key];
+                    const color = this.keyColors[note];
+
                     if (active) {
-                        keyElement.classList.add('active');
+                        keyElement.classList.add('active', 'glowing');
+                        keyElement.style.setProperty('--glow-color', color);
                     } else {
-                        keyElement.classList.remove('active');
+                        keyElement.classList.remove('active', 'glowing');
                     }
                 }
             }
@@ -452,16 +519,26 @@
                 }
 
                 const frequency = this.getFrequency(note);
+                const now = this.audioContext.currentTime;
 
+                if (this.currentTimbre === 'guitar') {
+                    this.playGuitar(note, frequency, now);
+                } else if (this.currentTimbre === 'piano') {
+                    this.playPiano(note, frequency, now);
+                } else {
+                    this.playSimpleWave(note, frequency, now);
+                }
+            }
+
+            playSimpleWave(note, frequency, now) {
                 // 创建振荡器
                 const oscillator = this.audioContext.createOscillator();
                 const gainNode = this.audioContext.createGain();
 
                 oscillator.type = this.currentTimbre;
-                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(frequency, now);
 
                 // 设置音量包络 (ADSR)
-                const now = this.audioContext.currentTime;
                 gainNode.gain.setValueAtTime(0, now);
                 gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Attack
                 gainNode.gain.linearRampToValueAtTime(0.2, now + 0.1);  // Decay to Sustain
@@ -474,7 +551,100 @@
                 oscillator.start(now);
 
                 // 保存振荡器和增益节点的引用
-                this.activeOscillators.set(note, { oscillator, gainNode });
+                this.activeOscillators.set(note, { oscillators: [oscillator], gainNode });
+            }
+
+            playGuitar(note, frequency, now) {
+                // 古典吉他音色：使用多个谐波和滤波器
+                const gainNode = this.audioContext.createGain();
+                const filter = this.audioContext.createBiquadFilter();
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(2000, now);
+                filter.Q.setValueAtTime(1, now);
+
+                // 创建多个谐波
+                const oscillators = [];
+                const harmonics = [
+                    { freq: 1, gain: 0.4 },
+                    { freq: 2, gain: 0.2 },
+                    { freq: 3, gain: 0.15 },
+                    { freq: 4, gain: 0.1 },
+                    { freq: 5, gain: 0.05 }
+                ];
+
+                harmonics.forEach(harmonic => {
+                    const osc = this.audioContext.createOscillator();
+                    const oscGain = this.audioContext.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(frequency * harmonic.freq, now);
+                    oscGain.gain.setValueAtTime(harmonic.gain, now);
+
+                    osc.connect(oscGain);
+                    oscGain.connect(filter);
+
+                    osc.start(now);
+                    oscillators.push(osc);
+                });
+
+                // 吉他的音量包络：快速的Attack和较长的Decay
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.5, now + 0.005); // 快速Attack
+                gainNode.gain.exponentialRampToValueAtTime(0.3, now + 0.1); // Decay
+
+                filter.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                this.activeOscillators.set(note, { oscillators, gainNode, filter });
+            }
+
+            playPiano(note, frequency, now) {
+                // 古典钢琴音色：使用多个谐波和复杂的包络
+                const gainNode = this.audioContext.createGain();
+                const filter = this.audioContext.createBiquadFilter();
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(3000, now);
+                filter.Q.setValueAtTime(0.5, now);
+
+                // 钢琴的谐波结构
+                const oscillators = [];
+                const harmonics = [
+                    { freq: 1, gain: 0.5, detune: 0 },
+                    { freq: 2, gain: 0.3, detune: 1 },
+                    { freq: 3, gain: 0.15, detune: -1 },
+                    { freq: 4, gain: 0.1, detune: 0.5 },
+                    { freq: 5, gain: 0.05, detune: -0.5 },
+                    { freq: 6, gain: 0.03, detune: 0 }
+                ];
+
+                harmonics.forEach(harmonic => {
+                    const osc = this.audioContext.createOscillator();
+                    const oscGain = this.audioContext.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(frequency * harmonic.freq, now);
+                    osc.detune.setValueAtTime(harmonic.detune, now);
+                    oscGain.gain.setValueAtTime(harmonic.gain, now);
+
+                    osc.connect(oscGain);
+                    oscGain.connect(filter);
+
+                    osc.start(now);
+                    oscillators.push(osc);
+                });
+
+                // 钢琴的音量包络：快速Attack和明显的Decay
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.6, now + 0.003); // 非常快的Attack
+                gainNode.gain.exponentialRampToValueAtTime(0.4, now + 0.05); // 快速Decay
+                gainNode.gain.exponentialRampToValueAtTime(0.25, now + 0.2); // 持续Decay
+
+                filter.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                this.activeOscillators.set(note, { oscillators, gainNode, filter });
             }
 
             stopNote(note) {
@@ -482,16 +652,18 @@
                     return;
                 }
 
-                const { oscillator, gainNode } = this.activeOscillators.get(note);
+                const { oscillators, gainNode } = this.activeOscillators.get(note);
                 const now = this.audioContext.currentTime;
 
-                // 释放音符 (Release)
+                // 释放音符 (Release) - 使用可控制的衰减时间
                 gainNode.gain.cancelScheduledValues(now);
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+                gainNode.gain.linearRampToValueAtTime(0, now + this.releaseTime);
 
-                // 停止振荡器
-                oscillator.stop(now + 0.1);
+                // 停止所有振荡器
+                oscillators.forEach(osc => {
+                    osc.stop(now + this.releaseTime);
+                });
 
                 // 从活动振荡器中移除
                 this.activeOscillators.delete(note);
