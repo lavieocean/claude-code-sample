@@ -1,0 +1,225 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 1000px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-group label {
+    font-weight: bold;
+    color: #555;
+}
+
+.control-group button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.control-group button:hover {
+    background: #5568d3;
+}
+
+.control-group button:active {
+    transform: scale(0.95);
+}
+
+#octave-display {
+    font-size: 20px;
+    font-weight: bold;
+    color: #667eea;
+    min-width: 30px;
+    text-align: center;
+}
+
+#timbre {
+    padding: 8px 12px;
+    border: 2px solid #667eea;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    background: white;
+}
+
+.keyboard {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    position: relative;
+    height: 250px;
+    margin: 40px 0;
+    padding: 0 20px;
+}
+
+.key {
+    position: relative;
+    cursor: pointer;
+    border: 2px solid #000;
+    transition: all 0.1s;
+    user-select: none;
+}
+
+.key.white {
+    width: 60px;
+    height: 200px;
+    background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
+    border-radius: 0 0 5px 5px;
+    margin: 0 2px;
+    z-index: 1;
+}
+
+.key.black {
+    width: 40px;
+    height: 130px;
+    background: linear-gradient(to bottom, #2c2c2c 0%, #000000 100%);
+    border-radius: 0 0 3px 3px;
+    position: absolute;
+    z-index: 2;
+    margin: 0;
+}
+
+/* 定位黑键 */
+.key.black:nth-of-type(2) { left: 62px; }  /* W - C# */
+.key.black:nth-of-type(4) { left: 126px; } /* E - D# */
+.key.black:nth-of-type(7) { left: 254px; } /* T - F# */
+.key.black:nth-of-type(9) { left: 318px; } /* Y - G# */
+.key.black:nth-of-type(11) { left: 382px; } /* U - A# */
+
+.key-label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.key.white .key-label {
+    color: #333;
+}
+
+.key.black .key-label {
+    color: #fff;
+    bottom: 8px;
+    font-size: 10px;
+}
+
+.key.white:hover {
+    background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
+}
+
+.key.black:hover {
+    background: linear-gradient(to bottom, #3c3c3c 0%, #1a1a1a 100%);
+}
+
+.key.active {
+    transform: translateY(2px);
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+.key.white.active {
+    background: linear-gradient(to bottom, #e0e0e0 0%, #d0d0d0 100%);
+}
+
+.key.black.active {
+    background: linear-gradient(to bottom, #1a1a1a 0%, #000000 100%);
+}
+
+.instructions {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 30px;
+}
+
+.instructions h3 {
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.instructions p {
+    color: #555;
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.instructions strong {
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .keyboard {
+        height: 180px;
+        transform: scale(0.8);
+    }
+
+    .key.white {
+        width: 45px;
+        height: 150px;
+    }
+
+    .key.black {
+        width: 30px;
+        height: 100px;
+    }
+
+    .key.black:nth-of-type(2) { left: 47px; }
+    .key.black:nth-of-type(4) { left: 95px; }
+    .key.black:nth-of-type(7) { left: 191px; }
+    .key.black:nth-of-type(9) { left: 239px; }
+    .key.black:nth-of-type(11) { left: 287px; }
+}

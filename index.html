@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI 电子琴</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>MIDI 电子琴</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="octave">八度:</label>
+                <button id="octave-down">-</button>
+                <span id="octave-display">4</span>
+                <button id="octave-up">+</button>
+            </div>
+
+            <div class="control-group">
+                <label for="timbre">音色:</label>
+                <select id="timbre">
+                    <option value="sine">正弦波 (柔和)</option>
+                    <option value="square">方波 (明亮)</option>
+                    <option value="sawtooth">锯齿波 (丰富)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="keyboard">
+            <!-- 白键 -->
+            <div class="key white" data-note="C" data-key="A">
+                <span class="key-label">A<br>C</span>
+            </div>
+            <div class="key black" data-note="C#" data-key="W">
+                <span class="key-label">W<br>C#</span>
+            </div>
+            <div class="key white" data-note="D" data-key="S">
+                <span class="key-label">S<br>D</span>
+            </div>
+            <div class="key black" data-note="D#" data-key="E">
+                <span class="key-label">E<br>D#</span>
+            </div>
+            <div class="key white" data-note="E" data-key="D">
+                <span class="key-label">D<br>E</span>
+            </div>
+            <div class="key white" data-note="F" data-key="F">
+                <span class="key-label">F<br>F</span>
+            </div>
+            <div class="key black" data-note="F#" data-key="T">
+                <span class="key-label">T<br>F#</span>
+            </div>
+            <div class="key white" data-note="G" data-key="G">
+                <span class="key-label">G<br>G</span>
+            </div>
+            <div class="key black" data-note="G#" data-key="Y">
+                <span class="key-label">Y<br>G#</span>
+            </div>
+            <div class="key white" data-note="A" data-key="H">
+                <span class="key-label">H<br>A</span>
+            </div>
+            <div class="key black" data-note="A#" data-key="U">
+                <span class="key-label">U<br>A#</span>
+            </div>
+            <div class="key white" data-note="B" data-key="J">
+                <span class="key-label">J<br>B</span>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>使用说明:</h3>
+            <p><strong>白键:</strong> A S D F G H J (对应 C D E F G A B)</p>
+            <p><strong>黑键:</strong> W E T Y U (对应 C# D# F# G# A#)</p>
+            <p><strong>八度切换:</strong> 使用 + / - 按钮或鼠标点击</p>
+            <p><strong>音色:</strong> 从下拉菜单选择不同的合成器音色</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
