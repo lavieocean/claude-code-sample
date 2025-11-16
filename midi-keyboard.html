@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI 电子琴</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .control-group button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .control-group button:hover {
+            background: #5568d3;
+        }
+
+        .control-group button:active {
+            transform: scale(0.95);
+        }
+
+        #octave-display {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        #timbre {
+            padding: 8px 12px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .keyboard {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+            height: 250px;
+            margin: 40px 0;
+            padding: 0 20px;
+        }
+
+        .key {
+            position: relative;
+            cursor: pointer;
+            border: 2px solid #000;
+            transition: all 0.1s;
+            user-select: none;
+        }
+
+        .key.white {
+            width: 60px;
+            height: 200px;
+            background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
+            border-radius: 0 0 5px 5px;
+            margin: 0 2px;
+            z-index: 1;
+        }
+
+        .key.black {
+            width: 40px;
+            height: 130px;
+            background: linear-gradient(to bottom, #2c2c2c 0%, #000000 100%);
+            border-radius: 0 0 3px 3px;
+            position: absolute;
+            z-index: 2;
+            margin: 0;
+        }
+
+        /* 定位黑键 */
+        .key.black:nth-of-type(2) { left: 62px; }  /* W - C# */
+        .key.black:nth-of-type(4) { left: 126px; } /* E - D# */
+        .key.black:nth-of-type(7) { left: 254px; } /* T - F# */
+        .key.black:nth-of-type(9) { left: 318px; } /* Y - G# */
+        .key.black:nth-of-type(11) { left: 382px; } /* U - A# */
+
+        .key-label {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .key.white .key-label {
+            color: #333;
+        }
+
+        .key.black .key-label {
+            color: #fff;
+            bottom: 8px;
+            font-size: 10px;
+        }
+
+        .key.white:hover {
+            background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
+        }
+
+        .key.black:hover {
+            background: linear-gradient(to bottom, #3c3c3c 0%, #1a1a1a 100%);
+        }
+
+        .key.active {
+            transform: translateY(2px);
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .key.white.active {
+            background: linear-gradient(to bottom, #e0e0e0 0%, #d0d0d0 100%);
+        }
+
+        .key.black.active {
+            background: linear-gradient(to bottom, #1a1a1a 0%, #000000 100%);
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .instructions p {
+            color: #555;
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .instructions strong {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .keyboard {
+                height: 180px;
+                transform: scale(0.8);
+            }
+
+            .key.white {
+                width: 45px;
+                height: 150px;
+            }
+
+            .key.black {
+                width: 30px;
+                height: 100px;
+            }
+
+            .key.black:nth-of-type(2) { left: 47px; }
+            .key.black:nth-of-type(4) { left: 95px; }
+            .key.black:nth-of-type(7) { left: 191px; }
+            .key.black:nth-of-type(9) { left: 239px; }
+            .key.black:nth-of-type(11) { left: 287px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MIDI 电子琴</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="octave">八度:</label>
+                <button id="octave-down">-</button>
+                <span id="octave-display">4</span>
+                <button id="octave-up">+</button>
+            </div>
+
+            <div class="control-group">
+                <label for="timbre">音色:</label>
+                <select id="timbre">
+                    <option value="sine">正弦波 (柔和)</option>
+                    <option value="square">方波 (明亮)</option>
+                    <option value="sawtooth">锯齿波 (丰富)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="keyboard">
+            <!-- 白键 -->
+            <div class="key white" data-note="C" data-key="A">
+                <span class="key-label">A<br>C</span>
+            </div>
+            <div class="key black" data-note="C#" data-key="W">
+                <span class="key-label">W<br>C#</span>
+            </div>
+            <div class="key white" data-note="D" data-key="S">
+                <span class="key-label">S<br>D</span>
+            </div>
+            <div class="key black" data-note="D#" data-key="E">
+                <span class="key-label">E<br>D#</span>
+            </div>
+            <div class="key white" data-note="E" data-key="D">
+                <span class="key-label">D<br>E</span>
+            </div>
+            <div class="key white" data-note="F" data-key="F">
+                <span class="key-label">F<br>F</span>
+            </div>
+            <div class="key black" data-note="F#" data-key="T">
+                <span class="key-label">T<br>F#</span>
+            </div>
+            <div class="key white" data-note="G" data-key="G">
+                <span class="key-label">G<br>G</span>
+            </div>
+            <div class="key black" data-note="G#" data-key="Y">
+                <span class="key-label">Y<br>G#</span>
+            </div>
+            <div class="key white" data-note="A" data-key="H">
+                <span class="key-label">H<br>A</span>
+            </div>
+            <div class="key black" data-note="A#" data-key="U">
+                <span class="key-label">U<br>A#</span>
+            </div>
+            <div class="key white" data-note="B" data-key="J">
+                <span class="key-label">J<br>B</span>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>使用说明:</h3>
+            <p><strong>白键:</strong> A S D F G H J (对应 C D E F G A B)</p>
+            <p><strong>黑键:</strong> W E T Y U (对应 C# D# F# G# A#)</p>
+            <p><strong>八度切换:</strong> 使用 + / - 按钮或鼠标点击</p>
+            <p><strong>音色:</strong> 从下拉菜单选择不同的合成器音色</p>
+        </div>
+    </div>
+
+    <script>
+        // MIDI 电子琴应用
+        class MIDIKeyboard {
+            constructor() {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.currentOctave = 4;
+                this.currentTimbre = 'sine';
+                this.activeOscillators = new Map();
+                this.keyPressed = new Set();
+
+                // 音符到频率的映射 (A4 = 440Hz)
+                this.noteFrequencies = {
+                    'C': 261.63,
+                    'C#': 277.18,
+                    'D': 293.66,
+                    'D#': 311.13,
+                    'E': 329.63,
+                    'F': 349.23,
+                    'F#': 369.99,
+                    'G': 392.00,
+                    'G#': 415.30,
+                    'A': 440.00,
+                    'A#': 466.16,
+                    'B': 493.88
+                };
+
+                // 键盘按键到音符的映射
+                this.keyMap = {
+                    'A': 'C',
+                    'W': 'C#',
+                    'S': 'D',
+                    'E': 'D#',
+                    'D': 'E',
+                    'F': 'F',
+                    'T': 'F#',
+                    'G': 'G',
+                    'Y': 'G#',
+                    'H': 'A',
+                    'U': 'A#',
+                    'J': 'B'
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateOctaveDisplay();
+            }
+
+            setupEventListeners() {
+                // 八度控制
+                document.getElementById('octave-up').addEventListener('click', () => this.changeOctave(1));
+                document.getElementById('octave-down').addEventListener('click', () => this.changeOctave(-1));
+
+                // 音色选择
+                document.getElementById('timbre').addEventListener('change', (e) => {
+                    this.currentTimbre = e.target.value;
+                });
+
+                // 键盘事件
+                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+                document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+
+                // 鼠标点击钢琴键
+                document.querySelectorAll('.key').forEach(key => {
+                    key.addEventListener('mousedown', () => {
+                        const note = key.dataset.note;
+                        this.playNote(note);
+                        key.classList.add('active');
+                    });
+
+                    key.addEventListener('mouseup', () => {
+                        const note = key.dataset.note;
+                        this.stopNote(note);
+                        key.classList.remove('active');
+                    });
+
+                    key.addEventListener('mouseleave', () => {
+                        const note = key.dataset.note;
+                        this.stopNote(note);
+                        key.classList.remove('active');
+                    });
+                });
+            }
+
+            changeOctave(direction) {
+                this.currentOctave = Math.max(0, Math.min(8, this.currentOctave + direction));
+                this.updateOctaveDisplay();
+            }
+
+            updateOctaveDisplay() {
+                document.getElementById('octave-display').textContent = this.currentOctave;
+            }
+
+            handleKeyDown(e) {
+                const key = e.key.toUpperCase();
+
+                // 防止重复按键
+                if (this.keyPressed.has(key)) {
+                    return;
+                }
+
+                if (this.keyMap[key]) {
+                    e.preventDefault();
+                    this.keyPressed.add(key);
+                    const note = this.keyMap[key];
+                    this.playNote(note);
+                    this.highlightKey(key, true);
+                }
+            }
+
+            handleKeyUp(e) {
+                const key = e.key.toUpperCase();
+
+                if (this.keyMap[key]) {
+                    e.preventDefault();
+                    this.keyPressed.delete(key);
+                    const note = this.keyMap[key];
+                    this.stopNote(note);
+                    this.highlightKey(key, false);
+                }
+            }
+
+            highlightKey(key, active) {
+                const keyElement = document.querySelector(`[data-key="${key}"]`);
+                if (keyElement) {
+                    if (active) {
+                        keyElement.classList.add('active');
+                    } else {
+                        keyElement.classList.remove('active');
+                    }
+                }
+            }
+
+            getFrequency(note) {
+                const baseFrequency = this.noteFrequencies[note];
+                // 计算当前八度的频率
+                const octaveMultiplier = Math.pow(2, this.currentOctave - 4);
+                return baseFrequency * octaveMultiplier;
+            }
+
+            playNote(note) {
+                // 如果该音符已经在播放，先停止
+                if (this.activeOscillators.has(note)) {
+                    this.stopNote(note);
+                }
+
+                const frequency = this.getFrequency(note);
+
+                // 创建振荡器
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.type = this.currentTimbre;
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+
+                // 设置音量包络 (ADSR)
+                const now = this.audioContext.currentTime;
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Attack
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.1);  // Decay to Sustain
+
+                // 连接音频节点
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                // 开始播放
+                oscillator.start(now);
+
+                // 保存振荡器和增益节点的引用
+                this.activeOscillators.set(note, { oscillator, gainNode });
+            }
+
+            stopNote(note) {
+                if (!this.activeOscillators.has(note)) {
+                    return;
+                }
+
+                const { oscillator, gainNode } = this.activeOscillators.get(note);
+                const now = this.audioContext.currentTime;
+
+                // 释放音符 (Release)
+                gainNode.gain.cancelScheduledValues(now);
+                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+
+                // 停止振荡器
+                oscillator.stop(now + 0.1);
+
+                // 从活动振荡器中移除
+                this.activeOscillators.delete(note);
+            }
+        }
+
+        // 初始化应用
+        let keyboard;
+
+        // 等待用户交互后初始化音频上下文（浏览器安全策略要求）
+        document.addEventListener('DOMContentLoaded', () => {
+            keyboard = new MIDIKeyboard();
+
+            // 提示用户点击以启用音频
+            const notice = document.createElement('div');
+            notice.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #667eea;
+                color: white;
+                padding: 15px 30px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                z-index: 1000;
+                font-weight: bold;
+            `;
+            notice.textContent = '点击任意位置或按键开始演奏！';
+            document.body.appendChild(notice);
+
+            const enableAudio = () => {
+                if (keyboard.audioContext.state === 'suspended') {
+                    keyboard.audioContext.resume();
+                }
+                notice.remove();
+                document.removeEventListener('click', enableAudio);
+                document.removeEventListener('keydown', enableAudio);
+            };
+
+            document.addEventListener('click', enableAudio, { once: true });
+            document.addEventListener('keydown', enableAudio, { once: true });
+        });
+    </script>
+</body>
+</html>
