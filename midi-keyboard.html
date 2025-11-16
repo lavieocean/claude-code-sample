@@ -422,6 +422,114 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
 
+        /* 预设曲目面板 */
+        .presets {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .presets h3 {
+            background: linear-gradient(135deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .preset-btn {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(67, 233, 123, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preset-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .preset-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .preset-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 233, 123, 0.6);
+        }
+
+        .preset-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .preset-btn.playing {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 25px rgba(240, 147, 251, 0.8);
+            }
+        }
+
+        .stop-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .stop-btn.visible {
+            display: inline-block;
+        }
+
+        .stop-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -524,6 +632,16 @@
             </div>
         </div>
 
+        <div class="presets">
+            <h3>🎵 预设曲目</h3>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-song="twinkle">⭐ 小星星</button>
+                <button class="preset-btn" data-song="auld">🎊 友谊地久天长</button>
+                <button class="preset-btn" data-song="indians">👶 十个小印第安人</button>
+                <button class="stop-btn" id="stop-song">⏹ 停止</button>
+            </div>
+        </div>
+
         <div class="instructions">
             <h3>使用说明:</h3>
             <p><strong>白键:</strong> A S D F G H J (对应 C D E F G A B)</p>
@@ -545,6 +663,8 @@
                 this.releaseTime = 0.3;
                 this.activeOscillators = new Map();
                 this.keyPressed = new Set();
+                this.isPlaying = false;
+                this.playbackTimeouts = [];
 
                 // 音符到频率的映射 (A4 = 440Hz)
                 this.noteFrequencies = {
@@ -592,6 +712,62 @@
                     'A': '#8800ff',   // 紫色
                     'A#': '#ff00ff',  // 品红色
                     'B': '#ff0088'    // 玫红色
+                };
+
+                // 预设歌曲 (音符, 时长ms)
+                this.songs = {
+                    twinkle: [
+                        // 小星星 - Twinkle Twinkle Little Star
+                        ['C', 500], ['C', 500], ['G', 500], ['G', 500],
+                        ['A', 500], ['A', 500], ['G', 1000],
+                        ['F', 500], ['F', 500], ['E', 500], ['E', 500],
+                        ['D', 500], ['D', 500], ['C', 1000],
+
+                        ['G', 500], ['G', 500], ['F', 500], ['F', 500],
+                        ['E', 500], ['E', 500], ['D', 1000],
+                        ['G', 500], ['G', 500], ['F', 500], ['F', 500],
+                        ['E', 500], ['E', 500], ['D', 1000],
+
+                        ['C', 500], ['C', 500], ['G', 500], ['G', 500],
+                        ['A', 500], ['A', 500], ['G', 1000],
+                        ['F', 500], ['F', 500], ['E', 500], ['E', 500],
+                        ['D', 500], ['D', 500], ['C', 1000]
+                    ],
+                    auld: [
+                        // 友谊地久天长 - Auld Lang Syne
+                        ['C', 400], ['C', 200], ['C', 400], ['E', 400],
+                        ['D', 400], ['C', 400], ['E', 800],
+                        ['D', 400], ['C', 400], ['E', 400], ['G', 1200],
+
+                        ['C', 400], ['C', 200], ['C', 400], ['E', 400],
+                        ['D', 400], ['C', 400], ['A', 400], ['G', 400],
+                        ['E', 400], ['D', 400], ['C', 1200],
+
+                        ['E', 400], ['E', 400], ['G', 400], ['E', 400],
+                        ['D', 400], ['C', 400], ['E', 800],
+                        ['D', 400], ['C', 400], ['E', 400], ['D', 1200],
+
+                        ['C', 400], ['C', 200], ['C', 400], ['E', 400],
+                        ['D', 400], ['C', 400], ['A', 400], ['G', 400],
+                        ['E', 400], ['D', 400], ['C', 1200]
+                    ],
+                    indians: [
+                        // 十个小印第安人 - Ten Little Indians
+                        ['C', 400], ['D', 400], ['E', 400], ['F', 400],
+                        ['G', 400], ['G', 400], ['G', 800],
+                        ['F', 400], ['F', 400], ['E', 400], ['E', 400],
+                        ['D', 400], ['D', 400], ['C', 800],
+
+                        ['C', 400], ['D', 400], ['E', 400], ['F', 400],
+                        ['G', 400], ['G', 400], ['G', 800],
+                        ['F', 400], ['F', 400], ['E', 400], ['E', 400],
+                        ['D', 400], ['D', 400], ['C', 800],
+
+                        ['G', 400], ['G', 400], ['A', 400], ['A', 400],
+                        ['G', 400], ['G', 400], ['E', 800],
+                        ['F', 400], ['F', 400], ['E', 400], ['E', 400],
+                        ['D', 400], ['D', 400], ['C', 800]
+                    ]
                 };
 
                 this.init();
@@ -643,6 +819,19 @@
                         this.stopNote(note);
                         key.classList.remove('active', 'glowing');
                     });
+                });
+
+                // 预设曲目按钮
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const songName = e.target.dataset.song;
+                        this.playSong(songName, e.target);
+                    });
+                });
+
+                // 停止按钮
+                document.getElementById('stop-song').addEventListener('click', () => {
+                    this.stopSong();
                 });
             }
 
@@ -861,6 +1050,90 @@
 
                 // 从活动振荡器中移除
                 this.activeOscillators.delete(note);
+            }
+
+            playSong(songName, buttonElement) {
+                // 如果已经在播放，先停止
+                if (this.isPlaying) {
+                    this.stopSong();
+                }
+
+                const song = this.songs[songName];
+                if (!song) return;
+
+                this.isPlaying = true;
+
+                // 更新UI
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.classList.remove('playing');
+                });
+                buttonElement.classList.add('playing');
+                document.getElementById('stop-song').classList.add('visible');
+
+                // 播放歌曲
+                let currentTime = 0;
+                song.forEach(([note, duration]) => {
+                    // 播放音符
+                    const playTimeout = setTimeout(() => {
+                        this.playNote(note);
+                        this.highlightNoteVisual(note, true);
+                    }, currentTime);
+                    this.playbackTimeouts.push(playTimeout);
+
+                    // 停止音符
+                    const stopTimeout = setTimeout(() => {
+                        this.stopNote(note);
+                        this.highlightNoteVisual(note, false);
+                    }, currentTime + duration * 0.8); // 稍微提前停止，音符之间有间隙
+                    this.playbackTimeouts.push(stopTimeout);
+
+                    currentTime += duration;
+                });
+
+                // 歌曲结束后清理
+                const endTimeout = setTimeout(() => {
+                    this.stopSong();
+                }, currentTime);
+                this.playbackTimeouts.push(endTimeout);
+            }
+
+            stopSong() {
+                // 清除所有定时器
+                this.playbackTimeouts.forEach(timeout => clearTimeout(timeout));
+                this.playbackTimeouts = [];
+
+                // 停止所有正在播放的音符
+                for (const note of this.activeOscillators.keys()) {
+                    this.stopNote(note);
+                }
+
+                // 清除所有高亮
+                document.querySelectorAll('.key').forEach(key => {
+                    key.classList.remove('active', 'glowing');
+                });
+
+                // 重置状态
+                this.isPlaying = false;
+
+                // 更新UI
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.classList.remove('playing');
+                });
+                document.getElementById('stop-song').classList.remove('visible');
+            }
+
+            highlightNoteVisual(note, active) {
+                const keyElement = document.querySelector(`[data-note="${note}"]`);
+                if (keyElement) {
+                    const color = this.keyColors[note];
+
+                    if (active) {
+                        keyElement.classList.add('active', 'glowing');
+                        keyElement.style.setProperty('--glow-color', color);
+                    } else {
+                        keyElement.classList.remove('active', 'glowing');
+                    }
+                }
             }
         }
 
