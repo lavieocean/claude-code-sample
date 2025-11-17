@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life in weeks</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-bg: #fafafa;
+            --color-text: #2a2a2a;
+            --color-text-light: #6a6a6a;
+            --color-border: #e0e0e0;
+            --color-lived: #2a2a2a;
+            --color-remaining: #f0f0f0;
+            --color-accent: #4a4a4a;
+            --spacing-xs: 8px;
+            --spacing-sm: 16px;
+            --spacing-md: 24px;
+            --spacing-lg: 48px;
+            --spacing-xl: 64px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-md);
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: var(--spacing-sm);
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            color: var(--color-text-light);
+            font-size: 0.95rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* Step 1: Input */
+        .step {
+            display: none;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-group {
+            margin: var(--spacing-lg) 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-xs);
+            color: var(--color-text-light);
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            background: white;
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--color-text);
+            border-radius: 2px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        button {
+            background: var(--color-text);
+            color: var(--color-bg);
+            border: none;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            font-size: 0.95rem;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+            margin-top: var(--spacing-md);
+        }
+
+        button:hover {
+            background: var(--color-accent);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.secondary {
+            background: transparent;
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            padding: var(--spacing-xs) var(--spacing-md);
+            font-size: 0.85rem;
+            margin-top: var(--spacing-sm);
+        }
+
+        button.secondary:hover {
+            border-color: var(--color-accent);
+            background: transparent;
+        }
+
+        /* Step 2: Visualization */
+        .stats {
+            margin: var(--spacing-lg) 0;
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .stat-item {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: -0.03em;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        .grid-container {
+            margin: var(--spacing-lg) 0;
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .grid-title {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        .legend {
+            display: flex;
+            gap: var(--spacing-md);
+            font-size: 0.8rem;
+            color: var(--color-text-light);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .legend-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 1px;
+        }
+
+        .legend-box.lived {
+            background: var(--color-lived);
+        }
+
+        .legend-box.remaining {
+            background: var(--color-remaining);
+            border: 1px solid var(--color-border);
+        }
+
+        .weeks-grid {
+            display: grid;
+            grid-template-columns: repeat(52, 1fr);
+            gap: 2px;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .week {
+            aspect-ratio: 1;
+            background: var(--color-remaining);
+            border: 1px solid var(--color-border);
+            border-radius: 1px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .week.lived {
+            background: var(--color-lived);
+            border-color: var(--color-lived);
+        }
+
+        .week:hover {
+            transform: scale(1.5);
+            z-index: 10;
+        }
+
+        .reflection {
+            margin-top: var(--spacing-xl);
+            padding: var(--spacing-md);
+            border-left: 2px solid var(--color-border);
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            font-style: italic;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--spacing-sm);
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .weeks-grid {
+                grid-template-columns: repeat(26, 1fr);
+                gap: 1px;
+            }
+
+            .legend {
+                flex-direction: column;
+                gap: var(--spacing-xs);
+            }
+
+            .week:hover {
+                transform: scale(2);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .weeks-grid {
+                grid-template-columns: repeat(13, 1fr);
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+        }
+
+        .error {
+            color: #c62828;
+            font-size: 0.85rem;
+            margin-top: var(--spacing-xs);
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Step 1: Input -->
+        <div class="step active" id="step1">
+            <h1>Life in weeks</h1>
+            <p>Each life contains approximately 4,680 weeks. A simple grid to help you reflect on time.</p>
+
+            <div class="input-group">
+                <label for="birthdate">When were you born?</label>
+                <input type="date" id="birthdate" max="">
+                <div class="error" id="error"></div>
+            </div>
+
+            <button id="visualizeBtn">Visualize your life</button>
+        </div>
+
+        <!-- Step 2: Visualization -->
+        <div class="step" id="step2">
+            <h1>Your life in weeks</h1>
+            <p>Each square represents one week of your life.</p>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="weeksLived">0</div>
+                    <div class="stat-label">Weeks lived</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="weeksRemaining">0</div>
+                    <div class="stat-label">Weeks remaining (estimated)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="percentLived">0%</div>
+                    <div class="stat-label">Of life experienced</div>
+                </div>
+            </div>
+
+            <div class="grid-container">
+                <div class="grid-header">
+                    <div class="grid-title">90 years × 52 weeks</div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-box lived"></div>
+                            <span>Lived</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box remaining"></div>
+                            <span>Remaining</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="weeks-grid" id="weeksGrid"></div>
+            </div>
+
+            <div class="reflection">
+                "Time is the most valuable thing a person can spend."
+            </div>
+
+            <button class="secondary" id="resetBtn">Start over</button>
+        </div>
+    </div>
+
+    <script>
+        // Constants
+        const LIFE_EXPECTANCY_YEARS = 90;
+        const WEEKS_PER_YEAR = 52;
+        const TOTAL_WEEKS = LIFE_EXPECTANCY_YEARS * WEEKS_PER_YEAR;
+
+        // Elements
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const birthdateInput = document.getElementById('birthdate');
+        const visualizeBtn = document.getElementById('visualizeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const errorEl = document.getElementById('error');
+        const weeksGrid = document.getElementById('weeksGrid');
+
+        // Set max date to today
+        const today = new Date().toISOString().split('T')[0];
+        birthdateInput.setAttribute('max', today);
+
+        // Calculate weeks lived
+        function calculateWeeks(birthdate) {
+            const birth = new Date(birthdate);
+            const now = new Date();
+            const diffTime = Math.abs(now - birth);
+            const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+            return diffWeeks;
+        }
+
+        // Validate input
+        function validateBirthdate(birthdate) {
+            if (!birthdate) {
+                return 'Please enter your birth date';
+            }
+
+            const birth = new Date(birthdate);
+            const now = new Date();
+
+            if (birth > now) {
+                return 'Birth date cannot be in the future';
+            }
+
+            const age = (now - birth) / (1000 * 60 * 60 * 24 * 365.25);
+            if (age > 120) {
+                return 'Please enter a valid birth date';
+            }
+
+            return null;
+        }
+
+        // Create grid
+        function createGrid(weeksLived) {
+            weeksGrid.innerHTML = '';
+
+            for (let i = 0; i < TOTAL_WEEKS; i++) {
+                const week = document.createElement('div');
+                week.className = 'week';
+
+                if (i < weeksLived) {
+                    week.classList.add('lived');
+                }
+
+                weeksGrid.appendChild(week);
+            }
+        }
+
+        // Update statistics
+        function updateStats(weeksLived) {
+            const weeksRemaining = Math.max(0, TOTAL_WEEKS - weeksLived);
+            const percentLived = Math.min(100, ((weeksLived / TOTAL_WEEKS) * 100).toFixed(1));
+
+            document.getElementById('weeksLived').textContent = weeksLived.toLocaleString();
+            document.getElementById('weeksRemaining').textContent = weeksRemaining.toLocaleString();
+            document.getElementById('percentLived').textContent = percentLived + '%';
+        }
+
+        // Show visualization
+        function showVisualization() {
+            const birthdate = birthdateInput.value;
+            const error = validateBirthdate(birthdate);
+
+            if (error) {
+                errorEl.textContent = error;
+                errorEl.classList.add('show');
+                return;
+            }
+
+            errorEl.classList.remove('show');
+
+            const weeksLived = calculateWeeks(birthdate);
+
+            // Update stats
+            updateStats(weeksLived);
+
+            // Create grid
+            createGrid(weeksLived);
+
+            // Switch to step 2
+            step1.classList.remove('active');
+            step2.classList.add('active');
+        }
+
+        // Reset
+        function reset() {
+            step2.classList.remove('active');
+            step1.classList.add('active');
+            birthdateInput.value = '';
+            errorEl.classList.remove('show');
+        }
+
+        // Event listeners
+        visualizeBtn.addEventListener('click', showVisualization);
+        resetBtn.addEventListener('click', reset);
+
+        birthdateInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                showVisualization();
+            }
+        });
+
+        // Clear error on input
+        birthdateInput.addEventListener('input', () => {
+            errorEl.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
