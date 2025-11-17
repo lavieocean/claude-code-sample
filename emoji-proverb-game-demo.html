@@ -67,6 +67,21 @@
             font-size: 0.85em;
         }
 
+        .hint-count {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .hint-count:hover {
+            color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .hint-count:active {
+            transform: scale(0.95);
+        }
+
         .stats {
             display: flex;
             justify-content: space-around;
@@ -301,7 +316,7 @@
         <h1>🎮 表情符号谚语猜谜</h1>
         <p class="subtitle">看表情符号，猜中国谚语！</p>
         <div class="demo-notice">
-            📌 演示版 - 包含 20 个预设题目 | 完整版支持 AI 动态生成无限题目
+            📌 演示版 - 包含 50 个预设题目 | 完整版支持 AI 动态生成无限题目
         </div>
 
         <div class="stats">
@@ -335,11 +350,11 @@
 
         <div class="button-group">
             <button class="btn-primary" id="submit-btn">提交答案</button>
-            <button class="btn-hint" id="hint-btn">💡 提示</button>
+            <button class="btn-hint" id="hint-btn">🪙 提示</button>
             <button class="btn-secondary" id="next-btn" style="display: none;">下一题</button>
         </div>
 
-        <div class="hint-count" id="hint-count">可用提示: 3</div>
+        <div class="hint-count" id="hint-count" title="点击增加提示硬币">🪙 可用提示: 10</div>
 
         <div class="feedback" id="feedback"></div>
     </div>
@@ -366,14 +381,44 @@
             { proverb: "掩耳盗铃", emoji: "👂🙉🔔🤲", hint: "自欺欺人" },
             { proverb: "刻舟求剑", emoji: "⛵✏️➡️🗡️❓", hint: "不懂得变通" },
             { proverb: "拔苗助长", emoji: "🌱⬆️🤲💀", hint: "急于求成反而坏事" },
-            { proverb: "杯弓蛇影", emoji: "🏹🐍☕😱", hint: "疑神疑鬼，自己吓自己" }
+            { proverb: "杯弓蛇影", emoji: "🏹🐍☕😱", hint: "疑神疑鬼，自己吓自己" },
+            { proverb: "釜底抽薪", emoji: "🔥🍲➡️🪵❌", hint: "从根本上解决问题" },
+            { proverb: "自相矛盾", emoji: "🛡️⚔️❓", hint: "言行不一致" },
+            { proverb: "班门弄斧", emoji: "🪓🏠👨‍🏫", hint: "在行家面前卖弄本领" },
+            { proverb: "三心二意", emoji: "❤️❤️❤️➕💭💭", hint: "做事不专心" },
+            { proverb: "盲人摸象", emoji: "🦯👨➡️🐘❓", hint: "认知片面" },
+            { proverb: "水到渠成", emoji: "💧➡️🏞️✅", hint: "条件成熟事情自然成功" },
+            { proverb: "纸上谈兵", emoji: "📄🗣️⚔️", hint: "空谈理论不切实际" },
+            { proverb: "鸡犬不宁", emoji: "🐔🐕😰", hint: "形容骚乱不安" },
+            { proverb: "雪中送炭", emoji: "❄️➡️🔥🪵", hint: "在困难时给予帮助" },
+            { proverb: "铁杵磨针", emoji: "🔨➡️🪡", hint: "只要功夫深铁杵磨成针" },
+            { proverb: "破釜沉舟", emoji: "🍲💥⛵💥", hint: "下定决心不留退路" },
+            { proverb: "叶公好龙", emoji: "🍃👨❤️🐉😱", hint: "表里不一" },
+            { proverb: "锦上添花", emoji: "🌸➕🎀✨", hint: "好上加好" },
+            { proverb: "雪上加霜", emoji: "❄️➕🧊😢", hint: "连续遭遇不幸" },
+            { proverb: "虎头蛇尾", emoji: "🐯🐍", hint: "有始无终" },
+            { proverb: "鹤立鸡群", emoji: "🦢🐔🐔🐔", hint: "出类拔萃" },
+            { proverb: "猴年马月", emoji: "🐵📅🐴🌙", hint: "遥遥无期" },
+            { proverb: "竹篮打水", emoji: "🧺💧❌", hint: "白费力气" },
+            { proverb: "瓜田李下", emoji: "🍉🌾👨🍐🌳", hint: "容易引起误会的场合" },
+            { proverb: "指鹿为马", emoji: "👉🦌➡️🐴", hint: "颠倒黑白" },
+            { proverb: "风吹草动", emoji: "💨🌾👀", hint: "有一点动静就警觉" },
+            { proverb: "水落石出", emoji: "💧⬇️🪨👁️", hint: "真相大白" },
+            { proverb: "鸟语花香", emoji: "🐦🎵🌸😊", hint: "美好的自然景象" },
+            { proverb: "龙飞凤舞", emoji: "🐉💨🦚💃", hint: "书法或姿态生动" },
+            { proverb: "鱼龙混杂", emoji: "🐟🐉😵", hint: "好坏混在一起" },
+            { proverb: "鸡飞蛋打", emoji: "🐔💨🥚💥", hint: "两头落空" },
+            { proverb: "虎口拔牙", emoji: "🐯😮🦷🤲", hint: "冒极大风险" },
+            { proverb: "狼吞虎咽", emoji: "🐺🐯🍖😋", hint: "吃东西又猛又急" },
+            { proverb: "龙争虎斗", emoji: "🐉⚔️🐯", hint: "激烈竞争" },
+            { proverb: "马到成功", emoji: "🐴➡️✅🎉", hint: "迅速取得成功" }
         ];
 
         let currentQuestion = null;
         let score = 0;
         let totalQuestions = 0;
         let correctAnswers = 0;
-        let hintsRemaining = 3;
+        let hintsRemaining = 10;
         let usedIndices = [];
 
         const elements = {
@@ -495,7 +540,7 @@
         // 获取提示
         function getHint() {
             if (hintsRemaining <= 0) {
-                showFeedback('没有可用的提示了！', 'hint');
+                showFeedback('没有可用的提示硬币了！点击硬币数量可以增加哦 🪙', 'hint');
                 return;
             }
 
@@ -505,12 +550,34 @@
             }
 
             hintsRemaining--;
-            elements.hintCount.textContent = `可用提示: ${hintsRemaining}`;
+            updateHintCount();
             showFeedback(`💡 提示：${currentQuestion.hint}`, 'hint');
 
             if (hintsRemaining <= 0) {
                 elements.hintBtn.disabled = true;
             }
+        }
+
+        // 更新提示计数显示
+        function updateHintCount() {
+            elements.hintCount.textContent = `🪙 可用提示: ${hintsRemaining}`;
+        }
+
+        // 增加提示硬币
+        function addHint() {
+            hintsRemaining++;
+            updateHintCount();
+            if (hintsRemaining > 0) {
+                elements.hintBtn.disabled = false;
+            }
+
+            // 添加视觉反馈
+            elements.hintCount.style.color = '#ffc107';
+            elements.hintCount.style.fontWeight = 'bold';
+            setTimeout(() => {
+                elements.hintCount.style.color = '#666';
+                elements.hintCount.style.fontWeight = 'normal';
+            }, 300);
         }
 
         // 显示反馈
@@ -531,6 +598,7 @@
         elements.submitBtn.addEventListener('click', submitAnswer);
         elements.nextBtn.addEventListener('click', loadNewQuestion);
         elements.hintBtn.addEventListener('click', getHint);
+        elements.hintCount.addEventListener('click', addHint);
 
         elements.answerInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !elements.submitBtn.disabled) {
