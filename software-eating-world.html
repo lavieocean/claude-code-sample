@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软件如何吞噬世界 | Software Is Eating the World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            margin-bottom: 10px;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .quote {
+            font-style: italic;
+            font-size: 1.1rem;
+            opacity: 0.85;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border-left: 4px solid rgba(255, 255, 255, 0.5);
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .industries-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .industry-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInScale 0.6s ease-out both;
+        }
+
+        .industry-card:nth-child(1) { animation-delay: 0.1s; }
+        .industry-card:nth-child(2) { animation-delay: 0.2s; }
+        .industry-card:nth-child(3) { animation-delay: 0.3s; }
+        .industry-card:nth-child(4) { animation-delay: 0.4s; }
+        .industry-card:nth-child(5) { animation-delay: 0.5s; }
+        .industry-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .industry-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+        }
+
+        .industry-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .industry-card:hover::before {
+            left: 100%;
+        }
+
+        .industry-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .industry-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .transformation {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            font-size: 1rem;
+        }
+
+        .old-way {
+            flex: 1;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .arrow {
+            font-size: 2rem;
+            animation: slideRight 1.5s ease-in-out infinite;
+        }
+
+        .new-way {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .impact {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .impact-label {
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .stats-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #ffd700;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+
+        footer a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideRight {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(10px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .industries-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .transformation {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 软件吞噬世界</h1>
+            <div class="subtitle">Software Is Eating the World</div>
+            <div class="quote">
+                "软件正在吞噬整个世界。" —— Marc Andreessen, 2011
+                <br><br>
+                十多年过去了，这个预言不仅成真，而且远超想象。让我们看看软件如何彻底改变了各个传统行业。
+            </div>
+        </header>
+
+        <div class="stats-section">
+            <div class="stats-title">📊 数字化转型的影响</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">100%</span>
+                    <div class="stat-label">财富500强企业<br>都在数字化转型</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">70%</span>
+                    <div class="stat-label">新创造价值<br>来自软件平台</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50万亿</span>
+                    <div class="stat-label">美元<br>软件市场规模</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">10亿+</span>
+                    <div class="stat-label">人的生活方式<br>被软件改变</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="industries-grid">
+            <div class="industry-card">
+                <span class="industry-icon">📺</span>
+                <h2 class="industry-title">媒体与娱乐</h2>
+                <div class="transformation">
+                    <div class="old-way">📼 电视台<br>DVD租赁</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">📱 Netflix<br>YouTube<br>抖音</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    传统媒体公司市值蒸发数千亿美元，流媒体平台订阅用户超过10亿。内容创作从机构垄断转向个人创作者时代。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🛒</span>
+                <h2 class="industry-title">零售商业</h2>
+                <div class="transformation">
+                    <div class="old-way">🏬 实体商店<br>商场购物</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">📦 亚马逊<br>淘宝<br>拼多多</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    电商占零售总额超过30%，数万家实体店关闭。24小时全球购物成为常态，供应链效率提升10倍以上。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🚗</span>
+                <h2 class="industry-title">交通出行</h2>
+                <div class="transformation">
+                    <div class="old-way">🚕 出租车<br>路边招手</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">📲 滴滴<br>Uber<br>特斯拉</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    出行效率提升50%，传统出租车行业面临颠覆。自动驾驶技术快速发展，共享出行改变城市交通模式。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">💰</span>
+                <h2 class="industry-title">金融服务</h2>
+                <div class="transformation">
+                    <div class="old-way">🏦 银行网点<br>柜台办理</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">💳 支付宝<br>微信支付<br>数字货币</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    移动支付交易额突破数百万亿，银行网点减少40%。金融科技让数亿无银行账户人群获得金融服务。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🏨</span>
+                <h2 class="industry-title">住宿与旅游</h2>
+                <div class="transformation">
+                    <div class="old-way">🏢 酒店预订<br>旅行社</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">🏠 Airbnb<br>携程<br>美团</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    共享经济创造数千万个人房东，传统旅行社市场份额下降70%。旅游规划从线下转向AI智能推荐。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🎓</span>
+                <h2 class="industry-title">教育培训</h2>
+                <div class="transformation">
+                    <div class="old-way">📚 实体课堂<br>线下培训</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">💻 网课<br>Khan Academy<br>得到</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    在线教育用户超过5亿，优质教育资源打破地域限制。AI个性化学习让因材施教成为可能，学习成本降低90%。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🏥</span>
+                <h2 class="industry-title">医疗健康</h2>
+                <div class="transformation">
+                    <div class="old-way">🏥 医院就诊<br>排队挂号</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">📱 在线问诊<br>AI诊断<br>健康管理</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    远程医疗服务覆盖偏远地区，AI辅助诊断准确率超过人类医生。可穿戴设备实时监控健康数据，预防医学成为主流。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🍔</span>
+                <h2 class="industry-title">餐饮外卖</h2>
+                <div class="transformation">
+                    <div class="old-way">☎️ 电话订餐<br>到店就餐</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">🛵 美团外卖<br>饿了么<br>DoorDash</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    外卖市场规模突破万亿，改变数亿人的用餐习惯。配送算法优化使30分钟达成为标准，创造数百万骑手就业。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🏭</span>
+                <h2 class="industry-title">制造业</h2>
+                <div class="transformation">
+                    <div class="old-way">⚙️ 传统工厂<br>人工生产</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">🤖 智能制造<br>工业4.0<br>3D打印</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    生产效率提升300%，缺陷率降低90%。柔性制造实现大规模个性化定制，供应链透明度大幅提升。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">💼</span>
+                <h2 class="industry-title">办公协作</h2>
+                <div class="transformation">
+                    <div class="old-way">📄 纸质办公<br>现场会议</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">☁️ 钉钉<br>Zoom<br>飞书</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    远程办公成为常态，全球协作无时差障碍。办公效率提升50%，企业运营成本降低30%，工作生活平衡成为可能。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">⚡</span>
+                <h2 class="industry-title">能源与环保</h2>
+                <div class="transformation">
+                    <div class="old-way">🔥 化石能源<br>人工抄表</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">🌞 智能电网<br>新能源<br>碳追踪</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    智能电网提升能源使用效率40%，可再生能源占比快速提升。软件驱动的碳足迹追踪推动可持续发展。
+                </div>
+            </div>
+
+            <div class="industry-card">
+                <span class="industry-icon">🎮</span>
+                <h2 class="industry-title">游戏与社交</h2>
+                <div class="transformation">
+                    <div class="old-way">🎯 线下娱乐<br>面对面社交</div>
+                    <div class="arrow">→</div>
+                    <div class="new-way">🎮 云游戏<br>元宇宙<br>虚拟社交</div>
+                </div>
+                <div class="impact">
+                    <div class="impact-label">🎯 影响：</div>
+                    游戏产业规模超越电影音乐总和，社交网络连接全球50亿人。虚拟世界创造新的经济体系和社会关系。
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stats-title">🚀 未来展望</div>
+            <div class="quote" style="border-left: 4px solid #ffd700;">
+                软件吞噬世界的进程还在加速。人工智能、量子计算、Web3 等新技术正在开启下一个十年的变革。
+                <br><br>
+                从自动驾驶到基因编辑，从虚拟现实到脑机接口，软件正在重新定义人类文明的边界。
+                <br><br>
+                <strong>这不是终点，而是开始。</strong>
+            </div>
+        </div>
+
+        <footer>
+            <p>灵感来源: <a href="https://a16z.com/why-software-is-eating-the-world/" target="_blank">Why Software Is Eating the World</a> by Marc Andreessen</p>
+            <p style="margin-top: 10px; opacity: 0.7;">创建于 2025 · 用代码展示软件改变世界的力量</p>
+        </footer>
+    </div>
+
+    <script>
+        // 添加滚动动画效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 为所有卡片添加点击交互
+        document.querySelectorAll('.industry-card').forEach(card => {
+            // 初始状态
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+
+            observer.observe(card);
+
+            // 点击效果
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+
+        // 数字滚动动画
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                element.textContent = value.toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // 当统计数据进入视口时触发动画
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach((stat, index) => {
+                        setTimeout(() => {
+                            const text = stat.textContent;
+                            if (text.includes('%')) {
+                                const num = parseInt(text);
+                                let current = 0;
+                                const interval = setInterval(() => {
+                                    current += Math.ceil(num / 50);
+                                    if (current >= num) {
+                                        current = num;
+                                        clearInterval(interval);
+                                    }
+                                    stat.textContent = current + '%';
+                                }, 30);
+                            }
+                        }, index * 100);
+                    });
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.stats-section').forEach(section => {
+            statsObserver.observe(section);
+        });
+
+        // 添加鼠标移动视差效果
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.industry-card');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            cards.forEach((card, index) => {
+                const speed = (index % 3 + 1) * 2;
+                const xOffset = (x - 0.5) * speed;
+                const yOffset = (y - 0.5) * speed;
+
+                if (!card.matches(':hover')) {
+                    card.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+                }
+            });
+        });
+
+        // 控制台彩蛋
+        console.log('%c🌐 软件吞噬世界', 'color: #667eea; font-size: 24px; font-weight: bold;');
+        console.log('%c欢迎探索这个展示页面！', 'color: #764ba2; font-size: 14px;');
+        console.log('%c"软件正在吞噬整个世界" - Marc Andreessen', 'color: #ffd700; font-size: 12px; font-style: italic;');
+    </script>
+</body>
+</html>
