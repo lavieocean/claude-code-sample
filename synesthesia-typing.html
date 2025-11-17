@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联觉打字体验 - Synesthesia Typing Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0a0a1f 0%, #000000 100%);
+        }
+
+        #text-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 3rem;
+            text-align: center;
+            pointer-events: none;
+            z-index: 10;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            max-width: 90vw;
+            word-wrap: break-word;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        #controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.3s ease;
+        }
+
+        #controls.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #controls h2 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        #controls p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            margin: 5px 5px 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .control-btn.active {
+            background: rgba(100, 200, 255, 0.3);
+            border-color: rgba(100, 200, 255, 0.8);
+        }
+
+        #mode-selector {
+            margin-top: 10px;
+        }
+
+        select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a1a3f 0%, #000000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            transition: opacity 0.5s ease;
+        }
+
+        #welcome-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #welcome-screen h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+
+        #welcome-screen p {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            opacity: 0.8;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        #start-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        #start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px rgba(102, 126, 234, 0.7);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        #stats {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            text-align: right;
+            z-index: 100;
+        }
+
+        @media (max-width: 768px) {
+            #text-display {
+                font-size: 2rem;
+            }
+
+            #controls {
+                font-size: 0.8rem;
+                padding: 10px 15px;
+                max-width: 90vw;
+            }
+
+            #welcome-screen h1 {
+                font-size: 2.5rem;
+            }
+
+            #welcome-screen p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="welcome-screen">
+        <h1>✨ 联觉打字体验 ✨</h1>
+        <p>开始打字，感受视觉与听觉的交响</p>
+        <p>每个字符都会创造独特的色彩、粒子和音符</p>
+        <p>让文字成为艺术，让打字成为创作</p>
+        <button id="start-btn">开始体验</button>
+    </div>
+
+    <div id="controls">
+        <h2>🎨 联觉打字体验</h2>
+        <p><strong>操作：</strong>开始打字即可创造视听效果</p>
+        <p><strong>清除：</strong>按 ESC 键清除文字</p>
+        <p><strong>隐藏/显示此面板：</strong>按 H 键</p>
+        <div id="mode-selector">
+            <button class="control-btn" id="fullscreen-btn">全屏模式</button>
+            <button class="control-btn active" id="particles-btn">粒子效果</button>
+            <button class="control-btn active" id="sound-btn">音效</button>
+            <br>
+            <label>视觉模式：</label>
+            <select id="visual-mode">
+                <option value="burst">爆发</option>
+                <option value="wave">波浪</option>
+                <option value="spiral">螺旋</option>
+                <option value="constellation">星座</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="text-display"></div>
+
+    <div id="stats">
+        <div>字符数: <span id="char-count">0</span></div>
+        <div>粒子数: <span id="particle-count">0</span></div>
+    </div>
+
+    <script>
+        class SynesthesiaTyping {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.textDisplay = document.getElementById('text-display');
+                this.charCount = document.getElementById('char-count');
+                this.particleCountDisplay = document.getElementById('particle-count');
+
+                this.text = '';
+                this.particles = [];
+                this.ripples = []; // 波纹效果
+                this.stars = []; // 背景星空
+                this.audioContext = null;
+                this.analyser = null;
+                this.dataArray = null;
+                this.particlesEnabled = true;
+                this.soundEnabled = true;
+                this.visualMode = 'burst';
+                this.controlsVisible = true;
+
+                this.initStars();
+                this.resize();
+                this.setupEventListeners();
+                this.animate();
+            }
+
+            // 初始化背景星空
+            initStars() {
+                for (let i = 0; i < 100; i++) {
+                    this.stars.push({
+                        x: Math.random() * window.innerWidth,
+                        y: Math.random() * window.innerHeight,
+                        size: Math.random() * 2,
+                        speed: Math.random() * 0.5 + 0.1,
+                        opacity: Math.random() * 0.5 + 0.3
+                    });
+                }
+            }
+
+            setupEventListeners() {
+                window.addEventListener('resize', () => this.resize());
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.clearText();
+                    } else if (e.key === 'h' || e.key === 'H') {
+                        this.toggleControls();
+                    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                        this.addCharacter(e.key);
+                    } else if (e.key === 'Backspace') {
+                        this.removeCharacter();
+                    }
+                });
+
+                // 控制按钮
+                document.getElementById('fullscreen-btn').addEventListener('click', () => {
+                    this.toggleFullscreen();
+                });
+
+                document.getElementById('particles-btn').addEventListener('click', (e) => {
+                    this.particlesEnabled = !this.particlesEnabled;
+                    e.target.classList.toggle('active');
+                });
+
+                document.getElementById('sound-btn').addEventListener('click', (e) => {
+                    this.soundEnabled = !this.soundEnabled;
+                    e.target.classList.toggle('active');
+                    if (this.soundEnabled && !this.audioContext) {
+                        this.initAudio();
+                    }
+                });
+
+                document.getElementById('visual-mode').addEventListener('change', (e) => {
+                    this.visualMode = e.target.value;
+                });
+
+                // 欢迎屏幕
+                document.getElementById('start-btn').addEventListener('click', () => {
+                    this.initAudio();
+                    document.getElementById('welcome-screen').classList.add('hidden');
+                });
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.centerX = this.canvas.width / 2;
+                this.centerY = this.canvas.height / 2;
+            }
+
+            initAudio() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    // 创建分析器用于音频可视化
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = 256;
+                    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                }
+            }
+
+            addCharacter(char) {
+                this.text += char;
+                this.textDisplay.textContent = this.text;
+                this.charCount.textContent = this.text.length;
+
+                // 获取字符编码用于计算颜色和音符
+                const charCode = char.charCodeAt(0);
+                const hue = (charCode * 7) % 360;
+
+                // 创建波纹效果
+                this.createRipple(hue);
+
+                // 创建视觉效果
+                if (this.particlesEnabled) {
+                    this.createParticles(hue, charCode);
+                }
+
+                // 播放声音
+                if (this.soundEnabled && this.audioContext) {
+                    this.playSound(charCode);
+                }
+
+                // 文字动画效果
+                this.textDisplay.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                this.textDisplay.style.color = `hsl(${hue}, 80%, 70%)`;
+                this.textDisplay.style.textShadow = `0 0 30px hsl(${hue}, 80%, 60%)`;
+                setTimeout(() => {
+                    this.textDisplay.style.transform = 'translate(-50%, -50%) scale(1)';
+                }, 100);
+            }
+
+            // 创建波纹效果
+            createRipple(hue) {
+                this.ripples.push({
+                    x: this.centerX,
+                    y: this.centerY,
+                    radius: 0,
+                    maxRadius: 300 + Math.random() * 200,
+                    color: `hsl(${hue}, 70%, 60%)`,
+                    alpha: 1
+                });
+            }
+
+            removeCharacter() {
+                if (this.text.length > 0) {
+                    this.text = this.text.slice(0, -1);
+                    this.textDisplay.textContent = this.text;
+                    this.charCount.textContent = this.text.length;
+                }
+            }
+
+            createParticles(hue, charCode) {
+                const particleCount = 20 + (charCode % 30);
+
+                switch(this.visualMode) {
+                    case 'burst':
+                        this.createBurstParticles(hue, particleCount);
+                        break;
+                    case 'wave':
+                        this.createWaveParticles(hue, particleCount);
+                        break;
+                    case 'spiral':
+                        this.createSpiralParticles(hue, particleCount);
+                        break;
+                    case 'constellation':
+                        this.createConstellationParticles(hue, particleCount);
+                        break;
+                }
+            }
+
+            createBurstParticles(hue, count) {
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+                    const speed = 2 + Math.random() * 4;
+                    const size = 2 + Math.random() * 4;
+
+                    this.particles.push({
+                        x: this.centerX,
+                        y: this.centerY,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: size,
+                        color: `hsl(${hue + Math.random() * 30}, 80%, 60%)`,
+                        life: 1,
+                        decay: 0.01 + Math.random() * 0.01
+                    });
+                }
+            }
+
+            createWaveParticles(hue, count) {
+                const time = Date.now() * 0.001;
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count;
+                    const radius = 50 + Math.sin(time + i * 0.5) * 30;
+                    const speed = 1 + Math.random() * 2;
+
+                    this.particles.push({
+                        x: this.centerX + Math.cos(angle) * radius,
+                        y: this.centerY + Math.sin(angle) * radius,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        size: 3 + Math.random() * 3,
+                        color: `hsl(${hue + (i * 10) % 60}, 70%, 60%)`,
+                        life: 1,
+                        decay: 0.008
+                    });
+                }
+            }
+
+            createSpiralParticles(hue, count) {
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count;
+                    const spiralAngle = i * 0.3;
+                    const radius = i * 2;
+
+                    this.particles.push({
+                        x: this.centerX + Math.cos(spiralAngle) * radius,
+                        y: this.centerY + Math.sin(spiralAngle) * radius,
+                        vx: Math.cos(angle) * 2,
+                        vy: Math.sin(angle) * 2,
+                        size: 2 + Math.random() * 3,
+                        color: `hsl(${(hue + i * 5) % 360}, 75%, 65%)`,
+                        life: 1,
+                        decay: 0.01
+                    });
+                }
+            }
+
+            createConstellationParticles(hue, count) {
+                // 创建连接的星座效果
+                const positions = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 50 + Math.random() * 150;
+                    const x = this.centerX + Math.cos(angle) * distance;
+                    const y = this.centerY + Math.sin(angle) * distance;
+
+                    positions.push({x, y});
+
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        size: 3 + Math.random() * 2,
+                        color: `hsl(${hue}, 80%, 70%)`,
+                        life: 1,
+                        decay: 0.008,
+                        isConstellation: true,
+                        connections: positions.length > 1 ? [positions[positions.length - 2]] : []
+                    });
+                }
+            }
+
+            playSound(charCode) {
+                // 基于字符编码创建独特的音符
+                const baseFreq = 200;
+                const octave = (charCode % 4) + 3;
+                const noteIndex = charCode % 12;
+
+                // 十二平均律音阶
+                const notes = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19];
+                const semitone = notes[noteIndex];
+                const frequency = baseFreq * Math.pow(2, (octave - 4 + semitone / 12));
+
+                // 创建音符
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                // 根据字符类型选择波形
+                const waveforms = ['sine', 'triangle', 'square', 'sawtooth'];
+                oscillator.type = waveforms[charCode % waveforms.length];
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+
+                // ADSR 包络
+                const now = this.audioContext.currentTime;
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Attack
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05); // Decay
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.3); // Release
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.analyser);
+                gainNode.connect(this.audioContext.destination);
+
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+            }
+
+            clearText() {
+                this.text = '';
+                this.textDisplay.textContent = '';
+                this.charCount.textContent = '0';
+                this.textDisplay.style.color = 'rgba(255, 255, 255, 0.9)';
+            }
+
+            toggleControls() {
+                this.controlsVisible = !this.controlsVisible;
+                document.getElementById('controls').classList.toggle('hidden');
+            }
+
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            updateParticles() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+
+                    // 更新位置
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    // 重力效果
+                    p.vy += 0.05;
+
+                    // 空气阻力
+                    p.vx *= 0.99;
+                    p.vy *= 0.99;
+
+                    // 生命值衰减
+                    p.life -= p.decay;
+
+                    // 移除死亡粒子
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            drawParticles() {
+                for (const p of this.particles) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = p.life;
+
+                    // 绘制粒子
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // 绘制光晕
+                    const gradient = this.ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+                    gradient.addColorStop(0, p.color);
+                    gradient.addColorStop(1, 'transparent');
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // 星座连线
+                    if (p.isConstellation && p.connections) {
+                        this.ctx.strokeStyle = p.color;
+                        this.ctx.lineWidth = 1;
+                        for (const conn of p.connections) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(p.x, p.y);
+                            this.ctx.lineTo(conn.x, conn.y);
+                            this.ctx.stroke();
+                        }
+                    }
+
+                    this.ctx.restore();
+                }
+            }
+
+            // 更新波纹
+            updateRipples() {
+                for (let i = this.ripples.length - 1; i >= 0; i--) {
+                    const r = this.ripples[i];
+                    r.radius += 5;
+                    r.alpha -= 0.01;
+
+                    if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+                        this.ripples.splice(i, 1);
+                    }
+                }
+            }
+
+            // 绘制波纹
+            drawRipples() {
+                for (const r of this.ripples) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = r.alpha;
+                    this.ctx.strokeStyle = r.color;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+                    this.ctx.stroke();
+
+                    // 内层光晕
+                    this.ctx.globalAlpha = r.alpha * 0.5;
+                    this.ctx.lineWidth = 4;
+                    this.ctx.strokeStyle = r.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(r.x, r.y, r.radius - 10, 0, Math.PI * 2);
+                    this.ctx.stroke();
+
+                    this.ctx.restore();
+                }
+            }
+
+            // 更新星空
+            updateStars() {
+                for (const star of this.stars) {
+                    star.y += star.speed;
+                    if (star.y > this.canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * this.canvas.width;
+                    }
+
+                    // 随机闪烁
+                    star.opacity += (Math.random() - 0.5) * 0.1;
+                    star.opacity = Math.max(0.1, Math.min(0.8, star.opacity));
+                }
+            }
+
+            // 绘制星空
+            drawStars() {
+                for (const star of this.stars) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = star.opacity;
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                }
+            }
+
+            // 绘制音频可视化
+            drawAudioVisualization() {
+                if (!this.analyser || !this.dataArray) return;
+
+                this.analyser.getByteFrequencyData(this.dataArray);
+
+                const barWidth = this.canvas.width / this.dataArray.length;
+                const centerY = this.canvas.height / 2;
+
+                for (let i = 0; i < this.dataArray.length; i++) {
+                    const value = this.dataArray[i];
+                    const height = (value / 255) * 100;
+                    const x = i * barWidth;
+                    const hue = (i / this.dataArray.length) * 360;
+
+                    this.ctx.save();
+                    this.ctx.globalAlpha = 0.3;
+                    this.ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+
+                    // 上半部分
+                    this.ctx.fillRect(x, centerY - height, barWidth - 1, height);
+                    // 下半部分（镜像）
+                    this.ctx.fillRect(x, centerY, barWidth - 1, height);
+
+                    this.ctx.restore();
+                }
+            }
+
+            animate() {
+                // 清除画布（带轨迹效果）
+                this.ctx.fillStyle = 'rgba(10, 10, 31, 0.15)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // 绘制背景星空
+                this.updateStars();
+                this.drawStars();
+
+                // 绘制音频可视化
+                this.drawAudioVisualization();
+
+                // 更新和绘制波纹
+                this.updateRipples();
+                this.drawRipples();
+
+                // 更新和绘制粒子
+                this.updateParticles();
+                this.drawParticles();
+
+                // 更新统计
+                this.particleCountDisplay.textContent = this.particles.length;
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // 初始化应用
+        window.addEventListener('DOMContentLoaded', () => {
+            new SynesthesiaTyping();
+        });
+    </script>
+</body>
+</html>
