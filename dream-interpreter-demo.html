@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ 梦境解读 - Dream Interpreter (演示版)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      line-height: 1.6;
+      font-weight: 400;
+
+      --color-primary: #9d4edd;
+      --color-secondary: #5a189a;
+      --color-accent: #ff006e;
+      --color-light: #f3e8ff;
+      --color-dark: #240046;
+      --color-text: #2b2d42;
+      --color-text-light: #8d99ae;
+
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #667eea 0%,
+        #764ba2 25%,
+        #f093fb 50%,
+        #4facfe 75%,
+        #00f2fe 100%
+      );
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+      animation: floatParticles 20s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes floatParticles {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.3;
+      }
+      50% {
+        transform: translateY(-20px) scale(1.1);
+        opacity: 0.6;
+      }
+    }
+
+    #root {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem 1rem;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .app-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeInDown 0.8s ease;
+    }
+
+    .app-title {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+      letter-spacing: -0.02em;
+    }
+
+    .app-subtitle {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 300;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .demo-notice {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1rem 1.5rem;
+      margin-top: 1rem;
+      color: white;
+      text-align: center;
+      font-size: 0.95rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+                  0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15),
+                  0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .dream-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-input,
+    .form-textarea {
+      padding: 1rem 1.25rem;
+      border: 2px solid rgba(157, 78, 221, 0.2);
+      border-radius: 16px;
+      font-size: 1rem;
+      font-family: inherit;
+      background: white;
+      color: var(--color-text);
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px rgba(157, 78, 221, 0.1);
+    }
+
+    .form-textarea {
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .form-button {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-family: inherit;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .form-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(102, 126, 234, 0.5);
+    }
+
+    .form-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .form-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .dreams-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .dreams-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .dreams-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dreams-count {
+      font-size: 0.9rem;
+      color: var(--color-text-light);
+      background: rgba(157, 78, 221, 0.1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+    }
+
+    .dream-item {
+      background: linear-gradient(135deg,
+        rgba(157, 78, 221, 0.05) 0%,
+        rgba(102, 126, 234, 0.05) 100%);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(157, 78, 221, 0.1);
+      cursor: pointer;
+    }
+
+    .dream-item:hover {
+      background: linear-gradient(135deg,
+        rgba(157, 78, 221, 0.1) 0%,
+        rgba(102, 126, 234, 0.1) 100%);
+      border-color: rgba(157, 78, 221, 0.3);
+      transform: translateX(4px);
+    }
+
+    .dream-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .dream-title-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--color-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .dream-date {
+      font-size: 0.85rem;
+      color: var(--color-text-light);
+    }
+
+    .dream-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .icon-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-button:hover {
+      background: rgba(157, 78, 221, 0.1);
+    }
+
+    .icon-button.delete:hover {
+      background: rgba(255, 0, 110, 0.1);
+      color: var(--color-accent);
+    }
+
+    .dream-content {
+      color: var(--color-text);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .dream-content.expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+    }
+
+    .dream-interpretation {
+      margin-top: 1rem;
+      padding: 1.25rem;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      border-left: 4px solid var(--color-primary);
+    }
+
+    .interpretation-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-secondary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .interpretation-content {
+      color: var(--color-text);
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(157, 78, 221, 0.3);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--color-text-light);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    .empty-state-text {
+      font-size: 1.1rem;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-title {
+        font-size: 2.5rem;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+
+      .dreams-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // 智能模拟解梦算法
+    const simulateInterpretation = (content) => {
+      // 关键词库
+      const keywords = {
+        飞: { symbol: '飞翔', emotion: '自由与解脱的渴望', link: '对突破现状的期待', advice: '勇敢追求你的梦想' },
+        跑: { symbol: '追逐或逃离', emotion: '焦虑或追求目标的决心', link: '生活中的压力或机遇', advice: '适当放慢脚步，思考方向' },
+        水: { symbol: '情感与潜意识', emotion: '内心深处的情绪流动', link: '人际关系和情感状态', advice: '倾听内心的声音' },
+        火: { symbol: '激情与转变', emotion: '强烈的情感或欲望', link: '正在经历的变革时期', advice: '把握热情，但保持理智' },
+        考试: { symbol: '评判与压力', emotion: '对自我价值的担忧', link: '面临重要选择或考验', advice: '相信自己的能力' },
+        迷路: { symbol: '方向感的缺失', emotion: '困惑与不确定', link: '人生方向的思考', advice: '静下心来，重新审视目标' },
+        追赶: { symbol: '逃避或追求', emotion: '紧张与焦虑', link: '现实中的压力源', advice: '正视问题，寻求解决' },
+        掉落: { symbol: '失控感', emotion: '不安全感或焦虑', link: '对某些事物失去掌控', advice: '学会放手，接纳不确定性' },
+        动物: { symbol: '本能与自然', emotion: '原始的情感和欲望', link: '内心深处的需求', advice: '与自己的本性和平相处' },
+        房子: { symbol: '自我与安全感', emotion: '对归属的需求', link: '个人成长和内在世界', advice: '建立稳固的内心家园' },
+        死亡: { symbol: '结束与新生', emotion: '对改变的恐惧', link: '生活中的重大转变', advice: '拥抱变化，迎接新开始' },
+        朋友: { symbol: '人际关系', emotion: '社交需求和连接', link: '现实中的友谊状态', advice: '珍惜身边的人' },
+        家人: { symbol: '根源与归属', emotion: '安全感和爱', link: '家庭关系的影响', advice: '与亲人保持良好沟通' },
+        工作: { symbol: '责任与成就', emotion: '对价值的追求', link: '职业发展和自我实现', advice: '平衡工作与生活' },
+        学校: { symbol: '学习与成长', emotion: '对知识的渴求', link: '个人发展的需求', advice: '保持学习的心态' },
+        车: { symbol: '人生旅程', emotion: '对前进的期待', link: '生活的方向和节奏', advice: '把握好人生的方向盘' },
+        爬: { symbol: '努力与上升', emotion: '奋斗的决心', link: '追求更高目标', advice: '一步一个脚印向上攀登' },
+        游泳: { symbol: '情感的探索', emotion: '与情绪共处', link: '处理复杂的情感', advice: '学会在情绪中游刃有余' },
+        唱歌: { symbol: '表达与释放', emotion: '喜悦或需要抒发', link: '自我表达的需求', advice: '勇敢表达真实的自己' },
+        哭: { symbol: '情感的释放', emotion: '压抑的情绪', link: '需要宣泄的感受', advice: '允许自己表达脆弱' },
+      };
+
+      // 情绪关键词
+      const emotions = {
+        快乐: '积极正面的心态',
+        害怕: '内心的不安和担忧',
+        紧张: '压力和焦虑感',
+        兴奋: '对新事物的期待',
+        悲伤: '需要处理的失落',
+        愤怒: '被压抑的情绪',
+        平静: '内心的和谐状态',
+        焦虑: '对未来的担忧',
+      };
+
+      // 检测关键词
+      let detectedKeywords = [];
+      let detectedEmotions = [];
+
+      Object.keys(keywords).forEach(key => {
+        if (content.includes(key)) {
+          detectedKeywords.push({ key, data: keywords[key] });
+        }
+      });
+
+      Object.keys(emotions).forEach(key => {
+        if (content.includes(key)) {
+          detectedEmotions.push({ key, data: emotions[key] });
+        }
+      });
+
+      // 生成解读
+      let interpretation = '';
+
+      interpretation += '亲爱的朋友，感谢你分享这个梦境。让我来为你温柔地解读：\n\n';
+
+      // 1. 整体象征意义
+      interpretation += '**梦境的整体象征意义**\n';
+      if (detectedKeywords.length > 0) {
+        const mainKeyword = detectedKeywords[0];
+        interpretation += `你的梦中出现了"${mainKeyword.key}"这个重要元素，它通常象征着${mainKeyword.data.symbol}。`;
+        if (detectedKeywords.length > 1) {
+          interpretation += `同时，梦中的"${detectedKeywords[1].key}"也在诉说着${detectedKeywords[1].data.symbol}的故事。`;
+        }
+      } else {
+        interpretation += '这个梦境反映了你内心深处的一些想法和感受，虽然表面看起来可能有些零散，但每一个细节都在向你传递重要的信息。';
+      }
+      interpretation += '\n\n';
+
+      // 2. 情绪状态
+      interpretation += '**可能反映的情绪状态**\n';
+      if (detectedKeywords.length > 0) {
+        interpretation += `从梦境中我能感受到，你现在可能正在经历${detectedKeywords[0].data.emotion}。`;
+      }
+      if (detectedEmotions.length > 0) {
+        interpretation += `梦中${detectedEmotions[0].key}的情绪表明你的内心正在处理${detectedEmotions[0].data}。`;
+      } else {
+        interpretation += '你的内心正在处理一些复杂的情感，这是很自然的。每个人都有自己的情感节奏，允许自己感受这些情绪是很重要的。';
+      }
+      interpretation += '\n\n';
+
+      // 3. 与现实生活的联系
+      interpretation += '**与现实生活的潜在联系**\n';
+      if (detectedKeywords.length > 0) {
+        interpretation += `这个梦可能与${detectedKeywords[0].data.link}有关。`;
+        if (detectedKeywords.length > 1) {
+          interpretation += `同时也暗示着${detectedKeywords[1].data.link}的状况。`;
+        }
+      } else {
+        interpretation += '梦境往往是潜意识在帮助我们处理日常生活中的经历。试着回想最近发生的事情，你可能会找到一些有趣的联系。';
+      }
+      interpretation += '\n\n';
+
+      // 4. 积极的启示和建议
+      interpretation += '**积极的启示和建议**\n';
+      if (detectedKeywords.length > 0) {
+        interpretation += `我想温柔地提醒你：${detectedKeywords[0].data.advice}。`;
+      }
+      interpretation += '记住，梦境是你内心智慧的体现，它在用独特的方式与你对话。保持开放的心态，倾听内心的声音，你会找到属于自己的答案。\n\n';
+      interpretation += '愿你的每一个梦都能带给你启示与成长。💫';
+
+      return interpretation;
+    };
+
+    function App() {
+      const [dreams, setDreams] = useState([]);
+      const [dreamTitle, setDreamTitle] = useState('');
+      const [dreamContent, setDreamContent] = useState('');
+      const [expandedDream, setExpandedDream] = useState(null);
+      const [interpretingDream, setInterpretingDream] = useState(null);
+
+      useEffect(() => {
+        const savedDreams = localStorage.getItem('dreams_demo');
+        if (savedDreams) {
+          try {
+            setDreams(JSON.parse(savedDreams));
+          } catch (e) {
+            console.error('Failed to load dreams:', e);
+          }
+        }
+      }, []);
+
+      useEffect(() => {
+        if (dreams.length > 0) {
+          localStorage.setItem('dreams_demo', JSON.stringify(dreams));
+        }
+      }, [dreams]);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!dreamTitle.trim() || !dreamContent.trim()) {
+          alert('请填写梦境标题和内容');
+          return;
+        }
+
+        const newDream = {
+          id: Date.now(),
+          title: dreamTitle.trim(),
+          content: dreamContent.trim(),
+          date: new Date().toISOString(),
+          interpretation: null
+        };
+
+        setDreams([newDream, ...dreams]);
+        setDreamTitle('');
+        setDreamContent('');
+
+        // 自动解读
+        await interpretDream(newDream.id, newDream.content);
+      };
+
+      const interpretDream = async (dreamId, content) => {
+        setInterpretingDream(dreamId);
+
+        // 模拟 API 延迟
+        await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
+
+        const interpretation = simulateInterpretation(content);
+
+        setDreams(prevDreams =>
+          prevDreams.map(dream =>
+            dream.id === dreamId
+              ? { ...dream, interpretation }
+              : dream
+          )
+        );
+
+        setInterpretingDream(null);
+      };
+
+      const deleteDream = (dreamId) => {
+        if (window.confirm('确定要删除这个梦境记录吗？')) {
+          setDreams(dreams.filter(dream => dream.id !== dreamId));
+          if (dreams.length === 1) {
+            localStorage.removeItem('dreams_demo');
+          }
+        }
+      };
+
+      const toggleExpand = (dreamId) => {
+        setExpandedDream(expandedDream === dreamId ? null : dreamId);
+      };
+
+      const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('zh-CN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      };
+
+      return (
+        <div className="app">
+          <header className="app-header">
+            <h1 className="app-title">✨ 梦境解读</h1>
+            <p className="app-subtitle">探索你的潜意识，发现内心的声音</p>
+            <div className="demo-notice">
+              🎭 这是演示版本，使用智能算法模拟解梦，无需 API Key
+            </div>
+          </header>
+
+          <main>
+            <div className="card">
+              <form className="dream-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="dream-title">
+                    🌙 梦境标题
+                  </label>
+                  <input
+                    id="dream-title"
+                    type="text"
+                    className="form-input"
+                    value={dreamTitle}
+                    onChange={(e) => setDreamTitle(e.target.value)}
+                    placeholder="给你的梦境起个名字..."
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="dream-content">
+                    💭 梦境内容
+                  </label>
+                  <textarea
+                    id="dream-content"
+                    className="form-textarea"
+                    value={dreamContent}
+                    onChange={(e) => setDreamContent(e.target.value)}
+                    placeholder="记录下你的梦境...尽可能详细地描述你梦中的场景、人物、情绪和感受"
+                  />
+                </div>
+
+                <button type="submit" className="form-button">
+                  <span>✨</span>
+                  记录并解读梦境
+                </button>
+              </form>
+            </div>
+
+            {dreams.length > 0 && (
+              <div className="card">
+                <div className="dreams-container">
+                  <div className="dreams-header">
+                    <h2 className="dreams-title">
+                      📖 我的梦境日记
+                    </h2>
+                    <span className="dreams-count">
+                      共 {dreams.length} 个梦境
+                    </span>
+                  </div>
+
+                  {dreams.map((dream) => (
+                    <div key={dream.id} className="dream-item">
+                      <div className="dream-header">
+                        <div>
+                          <h3 className="dream-title-text">{dream.title}</h3>
+                          <p className="dream-date">{formatDate(dream.date)}</p>
+                        </div>
+                        <div className="dream-actions">
+                          {!dream.interpretation && interpretingDream !== dream.id && (
+                            <button
+                              className="icon-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                interpretDream(dream.id, dream.content);
+                              }}
+                              title="解读梦境"
+                            >
+                              ✨
+                            </button>
+                          )}
+                          <button
+                            className="icon-button delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteDream(dream.id);
+                            }}
+                            title="删除"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`dream-content ${expandedDream === dream.id ? 'expanded' : ''}`}
+                        onClick={() => toggleExpand(dream.id)}
+                      >
+                        {dream.content}
+                      </div>
+
+                      {interpretingDream === dream.id && (
+                        <div className="dream-interpretation">
+                          <div className="interpretation-title">
+                            <span className="loading-spinner"></span>
+                            正在解读梦境...
+                          </div>
+                        </div>
+                      )}
+
+                      {dream.interpretation && (
+                        <div className="dream-interpretation">
+                          <div className="interpretation-title">
+                            💫 解梦分析
+                          </div>
+                          <div className="interpretation-content">
+                            {dream.interpretation}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {dreams.length === 0 && (
+              <div className="card">
+                <div className="empty-state">
+                  <div className="empty-state-icon">🌌</div>
+                  <p className="empty-state-text">
+                    还没有记录梦境，开始记录你的第一个梦吧
+                  </p>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
