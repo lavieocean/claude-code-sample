@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表情符号谚语猜谜游戏 - 演示版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .demo-notice {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #856404;
+            font-size: 0.85em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .emoji-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 30px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .emoji-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .emoji-text {
+            position: relative;
+            z-index: 1;
+            color: white;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .btn-hint {
+            background: #ffd93d;
+            color: #333;
+        }
+
+        .btn-hint:hover:not(:disabled) {
+            background: #ffc107;
+            transform: translateY(-2px);
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .feedback.hint {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .answer-reveal {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .hint-count {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .emoji-display {
+                font-size: 2em;
+                padding: 30px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-primary {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 表情符号谚语猜谜</h1>
+        <p class="subtitle">看表情符号，猜中国谚语！</p>
+        <div class="demo-notice">
+            📌 演示版 - 包含 20 个预设题目 | 完整版支持 AI 动态生成无限题目
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">得分</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">题号</div>
+                <div class="stat-value" id="question-number">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">正确率</div>
+                <div class="stat-value" id="accuracy">0%</div>
+            </div>
+        </div>
+
+        <div class="emoji-display">
+            <div class="emoji-text" id="emoji-text"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="answer-input">你的答案：</label>
+            <input
+                type="text"
+                id="answer-input"
+                placeholder="请输入你猜的谚语..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="submit-btn">提交答案</button>
+            <button class="btn-hint" id="hint-btn">💡 提示</button>
+            <button class="btn-secondary" id="next-btn" style="display: none;">下一题</button>
+        </div>
+
+        <div class="hint-count" id="hint-count">可用提示: 3</div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        // 预设的题目库
+        const questionBank = [
+            { proverb: "一石二鸟", emoji: "🪨➕🐦🐦", hint: "一次行动达到两个目的" },
+            { proverb: "滴水穿石", emoji: "💧💧💧➡️🪨", hint: "坚持不懈就能成功" },
+            { proverb: "画龙点睛", emoji: "🖌️🐉👁️✨", hint: "在关键处添加一笔使作品更完美" },
+            { proverb: "守株待兔", emoji: "🌳🧍‍♂️⏰🐰", hint: "不劳而获的侥幸心理" },
+            { proverb: "亡羊补牢", emoji: "🐑💨➡️🔧🏠", hint: "事后补救还不算晚" },
+            { proverb: "井底之蛙", emoji: "🐸🕳️🔽👀", hint: "见识短浅的人" },
+            { proverb: "对牛弹琴", emoji: "🎵🎹➡️🐄❓", hint: "对不懂的人白费口舌" },
+            { proverb: "鱼目混珠", emoji: "🐟👁️➕💎❓", hint: "用假的冒充真的" },
+            { proverb: "狐假虎威", emoji: "🦊🐯👑", hint: "借别人的威势吓唬人" },
+            { proverb: "塞翁失马", emoji: "👴🐴💨➡️🤔", hint: "坏事可能变好事" },
+            { proverb: "南辕北辙", emoji: "🧭⬇️🚗⬆️", hint: "行动和目的相反" },
+            { proverb: "画蛇添足", emoji: "🖌️🐍➕🦶", hint: "做多余的事反而不好" },
+            { proverb: "一箭双雕", emoji: "🏹➡️🦅🦅", hint: "一次行动完成两个目标" },
+            { proverb: "开门见山", emoji: "🚪➡️⛰️", hint: "说话直截了当" },
+            { proverb: "火上浇油", emoji: "🔥➕🛢️💥", hint: "使情况更加糟糕" },
+            { proverb: "望梅止渴", emoji: "👀🍑➡️💧", hint: "用空想来安慰自己" },
+            { proverb: "掩耳盗铃", emoji: "👂🙉🔔🤲", hint: "自欺欺人" },
+            { proverb: "刻舟求剑", emoji: "⛵✏️➡️🗡️❓", hint: "不懂得变通" },
+            { proverb: "拔苗助长", emoji: "🌱⬆️🤲💀", hint: "急于求成反而坏事" },
+            { proverb: "杯弓蛇影", emoji: "🏹🐍☕😱", hint: "疑神疑鬼，自己吓自己" }
+        ];
+
+        let currentQuestion = null;
+        let score = 0;
+        let totalQuestions = 0;
+        let correctAnswers = 0;
+        let hintsRemaining = 3;
+        let usedIndices = [];
+
+        const elements = {
+            emojiText: document.getElementById('emoji-text'),
+            answerInput: document.getElementById('answer-input'),
+            submitBtn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            hintBtn: document.getElementById('hint-btn'),
+            feedback: document.getElementById('feedback'),
+            score: document.getElementById('score'),
+            questionNumber: document.getElementById('question-number'),
+            accuracy: document.getElementById('accuracy'),
+            hintCount: document.getElementById('hint-count')
+        };
+
+        // 加载新题目
+        function loadNewQuestion() {
+            // 检查是否还有题目
+            if (usedIndices.length >= questionBank.length) {
+                showFeedback('🎉 恭喜！你已经完成所有题目！\n总得分：' + score + ' 分\n正确率：' + Math.round((correctAnswers / totalQuestions) * 100) + '%', 'correct');
+                elements.nextBtn.style.display = 'none';
+                elements.submitBtn.disabled = true;
+                elements.hintBtn.disabled = true;
+                elements.answerInput.disabled = true;
+                return;
+            }
+
+            // 随机选择一个未使用的题目
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * questionBank.length);
+            } while (usedIndices.includes(randomIndex));
+
+            usedIndices.push(randomIndex);
+            currentQuestion = questionBank[randomIndex];
+
+            elements.emojiText.textContent = currentQuestion.emoji;
+            elements.answerInput.value = '';
+            elements.answerInput.disabled = false;
+            elements.submitBtn.disabled = false;
+            elements.hintBtn.disabled = hintsRemaining <= 0;
+            elements.nextBtn.style.display = 'none';
+            elements.feedback.classList.remove('show');
+            elements.answerInput.focus();
+
+            totalQuestions++;
+            elements.questionNumber.textContent = totalQuestions;
+        }
+
+        // 检查答案相似度
+        function checkAnswerSimilarity(userAnswer, correctAnswer) {
+            userAnswer = userAnswer.toLowerCase().trim();
+            correctAnswer = correctAnswer.toLowerCase().trim();
+
+            // 完全匹配
+            if (userAnswer === correctAnswer) {
+                return { isCorrect: true, similarity: 100 };
+            }
+
+            // 去除标点符号后比较
+            const cleanUser = userAnswer.replace(/[，。！？、：；""''（）【】]/g, '');
+            const cleanCorrect = correctAnswer.replace(/[，。！？、：；""''（）【】]/g, '');
+
+            if (cleanUser === cleanCorrect) {
+                return { isCorrect: true, similarity: 95 };
+            }
+
+            // 包含关系
+            if (cleanUser.includes(cleanCorrect) || cleanCorrect.includes(cleanUser)) {
+                return { isCorrect: true, similarity: 85 };
+            }
+
+            // 计算相似字符数
+            let matchCount = 0;
+            const minLen = Math.min(cleanUser.length, cleanCorrect.length);
+            for (let i = 0; i < minLen; i++) {
+                if (cleanUser[i] === cleanCorrect[i]) {
+                    matchCount++;
+                }
+            }
+
+            const similarity = Math.round((matchCount / cleanCorrect.length) * 100);
+            return { isCorrect: similarity >= 80, similarity };
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const userAnswer = elements.answerInput.value.trim();
+
+            if (!userAnswer) {
+                showFeedback('请输入答案！', 'incorrect');
+                return;
+            }
+
+            if (!currentQuestion) {
+                showFeedback('请先加载题目！', 'incorrect');
+                return;
+            }
+
+            elements.submitBtn.disabled = true;
+            elements.hintBtn.disabled = true;
+            elements.answerInput.disabled = true;
+
+            const result = checkAnswerSimilarity(userAnswer, currentQuestion.proverb);
+
+            if (result.isCorrect) {
+                correctAnswers++;
+                score += 10;
+                elements.score.textContent = score;
+                showFeedback(`🎉 恭喜答对了！<div class="answer-reveal">正确答案：${currentQuestion.proverb}</div>`, 'correct');
+            } else {
+                showFeedback(`❌ 答错了！<div class="answer-reveal">正确答案：${currentQuestion.proverb}</div><div style="margin-top: 10px;">你的答案：${userAnswer}</div>`, 'incorrect');
+            }
+
+            updateAccuracy();
+            elements.nextBtn.style.display = 'block';
+        }
+
+        // 获取提示
+        function getHint() {
+            if (hintsRemaining <= 0) {
+                showFeedback('没有可用的提示了！', 'hint');
+                return;
+            }
+
+            if (!currentQuestion) {
+                showFeedback('请先加载题目！', 'hint');
+                return;
+            }
+
+            hintsRemaining--;
+            elements.hintCount.textContent = `可用提示: ${hintsRemaining}`;
+            showFeedback(`💡 提示：${currentQuestion.hint}`, 'hint');
+
+            if (hintsRemaining <= 0) {
+                elements.hintBtn.disabled = true;
+            }
+        }
+
+        // 显示反馈
+        function showFeedback(message, type) {
+            elements.feedback.innerHTML = message;
+            elements.feedback.className = `feedback show ${type}`;
+        }
+
+        // 更新正确率
+        function updateAccuracy() {
+            const accuracy = totalQuestions > 0
+                ? Math.round((correctAnswers / totalQuestions) * 100)
+                : 0;
+            elements.accuracy.textContent = `${accuracy}%`;
+        }
+
+        // 事件监听
+        elements.submitBtn.addEventListener('click', submitAnswer);
+        elements.nextBtn.addEventListener('click', loadNewQuestion);
+        elements.hintBtn.addEventListener('click', getHint);
+
+        elements.answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !elements.submitBtn.disabled) {
+                submitAnswer();
+            }
+        });
+
+        // 页面加载时自动加载第一题
+        window.addEventListener('DOMContentLoaded', loadNewQuestion);
+    </script>
+</body>
+</html>
