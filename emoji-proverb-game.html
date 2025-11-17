@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表情符号谚语猜谜游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .emoji-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 30px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .emoji-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .emoji-text {
+            position: relative;
+            z-index: 1;
+            color: white;
+            line-height: 1.5;
+        }
+
+        .loading {
+            color: white;
+            font-size: 0.5em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .btn-hint {
+            background: #ffd93d;
+            color: #333;
+        }
+
+        .btn-hint:hover:not(:disabled) {
+            background: #ffc107;
+            transform: translateY(-2px);
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .feedback.hint {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .answer-reveal {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .hint-count {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .emoji-display {
+                font-size: 2em;
+                padding: 30px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-primary {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 表情符号谚语猜谜</h1>
+        <p class="subtitle">看表情符号，猜中国谚语！</p>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">得分</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">题号</div>
+                <div class="stat-value" id="question-number">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">正确率</div>
+                <div class="stat-value" id="accuracy">0%</div>
+            </div>
+        </div>
+
+        <div class="emoji-display">
+            <div class="emoji-text" id="emoji-text">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="answer-input">你的答案：</label>
+            <input
+                type="text"
+                id="answer-input"
+                placeholder="请输入你猜的谚语..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="submit-btn">提交答案</button>
+            <button class="btn-hint" id="hint-btn">💡 提示</button>
+            <button class="btn-secondary" id="next-btn" style="display: none;">下一题</button>
+        </div>
+
+        <div class="hint-count" id="hint-count">可用提示: 3</div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        let currentQuestion = null;
+        let score = 0;
+        let totalQuestions = 0;
+        let correctAnswers = 0;
+        let hintsRemaining = 3;
+        let usedProverbs = new Set();
+
+        const elements = {
+            emojiText: document.getElementById('emoji-text'),
+            answerInput: document.getElementById('answer-input'),
+            submitBtn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            hintBtn: document.getElementById('hint-btn'),
+            feedback: document.getElementById('feedback'),
+            score: document.getElementById('score'),
+            questionNumber: document.getElementById('question-number'),
+            accuracy: document.getElementById('accuracy'),
+            hintCount: document.getElementById('hint-count')
+        };
+
+        // 加载新题目
+        async function loadNewQuestion() {
+            try {
+                elements.emojiText.innerHTML = '<div class="loading">正在生成题目...</div>';
+                elements.answerInput.value = '';
+                elements.answerInput.disabled = true;
+                elements.submitBtn.disabled = true;
+                elements.hintBtn.disabled = true;
+                elements.nextBtn.style.display = 'none';
+                elements.feedback.classList.remove('show');
+
+                const response = await fetch('/api/generate-question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        usedProverbs: Array.from(usedProverbs)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('生成题目失败');
+                }
+
+                currentQuestion = await response.json();
+                usedProverbs.add(currentQuestion.proverb);
+
+                elements.emojiText.textContent = currentQuestion.emoji;
+                elements.answerInput.disabled = false;
+                elements.submitBtn.disabled = false;
+                elements.hintBtn.disabled = hintsRemaining <= 0;
+                elements.answerInput.focus();
+
+                totalQuestions++;
+                elements.questionNumber.textContent = totalQuestions;
+
+            } catch (error) {
+                console.error('加载题目错误:', error);
+                elements.emojiText.innerHTML = '<div class="loading">❌ 加载失败，请刷新页面重试</div>';
+                showFeedback('生成题目时出错，请检查服务器是否运行', 'incorrect');
+            }
+        }
+
+        // 提交答案
+        async function submitAnswer() {
+            const userAnswer = elements.answerInput.value.trim();
+
+            if (!userAnswer) {
+                showFeedback('请输入答案！', 'incorrect');
+                return;
+            }
+
+            if (!currentQuestion) {
+                showFeedback('请先加载题目！', 'incorrect');
+                return;
+            }
+
+            elements.submitBtn.disabled = true;
+            elements.hintBtn.disabled = true;
+            elements.answerInput.disabled = true;
+
+            try {
+                const response = await fetch('/api/check-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userAnswer: userAnswer,
+                        correctAnswer: currentQuestion.proverb
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.isCorrect) {
+                    correctAnswers++;
+                    score += 10;
+                    elements.score.textContent = score;
+                    showFeedback(`🎉 恭喜答对了！\n<div class="answer-reveal">正确答案：${currentQuestion.proverb}</div>`, 'correct');
+                } else {
+                    showFeedback(`❌ 答错了！\n<div class="answer-reveal">正确答案：${currentQuestion.proverb}</div>\n<div style="margin-top: 10px;">你的答案：${userAnswer}</div>`, 'incorrect');
+                }
+
+                updateAccuracy();
+                elements.nextBtn.style.display = 'block';
+
+            } catch (error) {
+                console.error('检查答案错误:', error);
+                showFeedback('检查答案时出错', 'incorrect');
+                elements.submitBtn.disabled = false;
+                elements.answerInput.disabled = false;
+            }
+        }
+
+        // 获取提示
+        async function getHint() {
+            if (hintsRemaining <= 0) {
+                showFeedback('没有可用的提示了！', 'hint');
+                return;
+            }
+
+            if (!currentQuestion) {
+                showFeedback('请先加载题目！', 'hint');
+                return;
+            }
+
+            elements.hintBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/get-hint', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        proverb: currentQuestion.proverb
+                    })
+                });
+
+                const result = await response.json();
+
+                hintsRemaining--;
+                elements.hintCount.textContent = `可用提示: ${hintsRemaining}`;
+                showFeedback(`💡 提示：${result.hint}`, 'hint');
+
+                if (hintsRemaining > 0) {
+                    elements.hintBtn.disabled = false;
+                }
+
+            } catch (error) {
+                console.error('获取提示错误:', error);
+                showFeedback('获取提示时出错', 'hint');
+                elements.hintBtn.disabled = false;
+            }
+        }
+
+        // 显示反馈
+        function showFeedback(message, type) {
+            elements.feedback.innerHTML = message;
+            elements.feedback.className = `feedback show ${type}`;
+        }
+
+        // 更新正确率
+        function updateAccuracy() {
+            const accuracy = totalQuestions > 0
+                ? Math.round((correctAnswers / totalQuestions) * 100)
+                : 0;
+            elements.accuracy.textContent = `${accuracy}%`;
+        }
+
+        // 事件监听
+        elements.submitBtn.addEventListener('click', submitAnswer);
+        elements.nextBtn.addEventListener('click', loadNewQuestion);
+        elements.hintBtn.addEventListener('click', getHint);
+
+        elements.answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !elements.submitBtn.disabled) {
+                submitAnswer();
+            }
+        });
+
+        // 页面加载时自动加载第一题
+        window.addEventListener('DOMContentLoaded', loadNewQuestion);
+    </script>
+</body>
+</html>
