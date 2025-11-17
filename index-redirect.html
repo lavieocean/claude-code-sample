@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0; url=emoji-proverb-game-demo.html">
+    <title>跳转中...</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        h1 { margin: 0 0 10px 0; }
+        p { margin: 5px 0; }
+        a {
+            color: #ffd93d;
+            text-decoration: none;
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <h1>🎮 表情符号谚语猜谜游戏</h1>
+    <p>正在跳转到演示版...</p>
+    <a href="emoji-proverb-game-demo.html">点击这里立即进入</a>
+
+    <div style="margin-top: 40px; opacity: 0.8;">
+        <h3>其他项目：</h3>
+        <a href="midi-keyboard.html" style="margin: 5px;">🎹 MIDI 电子琴</a>
+    </div>
+</body>
+</html>
