@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画完美圆圈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #f8f8f8;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        #header {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        #scoreDisplay {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        #canvasContainer {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #canvas {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            cursor: crosshair;
+            max-width: 95%;
+            max-height: 95%;
+        }
+
+        #feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: 700;
+            color: #2ecc71;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 5;
+        }
+
+        #feedback.show {
+            opacity: 1;
+        }
+
+        #feedback.perfect {
+            color: #2ecc71;
+            animation: pulse 0.5s ease;
+        }
+
+        #feedback.good {
+            color: #3498db;
+        }
+
+        #feedback.ok {
+            color: #f39c12;
+        }
+
+        #feedback.poor {
+            color: #e74c3c;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 16px;
+            color: #34495e;
+            z-index: 5;
+        }
+
+        #resetBtn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+
+        #resetBtn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+        }
+
+        #resetBtn:active {
+            transform: translateY(0);
+        }
+
+        .stats-detail {
+            font-size: 11px;
+            color: #95a5a6;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="header">
+            <div id="title">画完美圆圈 🎯</div>
+            <div id="scoreDisplay">
+                <div class="score-item">
+                    <div class="score-label">当前得分</div>
+                    <div class="score-value" id="currentScore">-</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">最高分</div>
+                    <div class="score-value" id="bestScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">尝试次数</div>
+                    <div class="score-value" id="attempts">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvasContainer">
+            <canvas id="canvas"></canvas>
+            <div id="feedback"></div>
+            <div id="instructions">按住鼠标或触摸屏幕画一个圆圈</div>
+            <button id="resetBtn">清除画布</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const game = {
+            isDrawing: false,
+            points: [],
+            bestScore: 0,
+            attempts: 0,
+            canvas: null,
+            ctx: null
+        };
+
+        // 初始化
+        function init() {
+            game.canvas = document.getElementById('canvas');
+            game.ctx = game.canvas.getContext('2d');
+
+            // 设置画布大小
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // 加载最佳分数
+            game.bestScore = parseFloat(localStorage.getItem('bestCircleScore')) || 0;
+            updateScoreDisplay();
+
+            // 鼠标事件
+            game.canvas.addEventListener('mousedown', startDrawing);
+            game.canvas.addEventListener('mousemove', draw);
+            game.canvas.addEventListener('mouseup', endDrawing);
+            game.canvas.addEventListener('mouseleave', endDrawing);
+
+            // 触摸事件
+            game.canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                game.canvas.dispatchEvent(mouseEvent);
+            });
+
+            game.canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                game.canvas.dispatchEvent(mouseEvent);
+            });
+
+            game.canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const mouseEvent = new MouseEvent('mouseup', {});
+                game.canvas.dispatchEvent(mouseEvent);
+            });
+
+            // 重置按钮
+            document.getElementById('resetBtn').addEventListener('click', clearCanvas);
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('canvasContainer');
+            const size = Math.min(container.clientWidth - 40, container.clientHeight - 40, 800);
+            game.canvas.width = size;
+            game.canvas.height = size;
+        }
+
+        function startDrawing(e) {
+            game.isDrawing = true;
+            game.points = [];
+            clearCanvas();
+
+            const rect = game.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            game.points.push({ x, y });
+
+            game.ctx.beginPath();
+            game.ctx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!game.isDrawing) return;
+
+            const rect = game.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            game.points.push({ x, y });
+
+            game.ctx.lineTo(x, y);
+            game.ctx.strokeStyle = '#2c3e50';
+            game.ctx.lineWidth = 3;
+            game.ctx.lineCap = 'round';
+            game.ctx.lineJoin = 'round';
+            game.ctx.stroke();
+        }
+
+        function endDrawing() {
+            if (!game.isDrawing) return;
+            game.isDrawing = false;
+
+            if (game.points.length < 10) {
+                showFeedback('太短了!', 'poor');
+                return;
+            }
+
+            // 计算圆圈的完美度
+            const score = calculateCircleScore(game.points);
+            game.attempts++;
+
+            // 更新最佳分数
+            if (score > game.bestScore) {
+                game.bestScore = score;
+                localStorage.setItem('bestCircleScore', score.toString());
+            }
+
+            updateScoreDisplay(score);
+            showScoreFeedback(score);
+
+            // 绘制理想圆圈对比
+            drawIdealCircle(game.points);
+        }
+
+        function calculateCircleScore(points) {
+            if (points.length < 10) return 0;
+
+            // 1. 计算中心点（所有点的平均值）
+            const center = {
+                x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+                y: points.reduce((sum, p) => sum + p.y, 0) / points.length
+            };
+
+            // 2. 计算每个点到中心的距离
+            const distances = points.map(p =>
+                Math.sqrt(Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2))
+            );
+
+            // 3. 计算平均半径
+            const avgRadius = distances.reduce((sum, d) => sum + d, 0) / distances.length;
+
+            // 4. 计算标准差（衡量点分布的一致性）
+            const variance = distances.reduce((sum, d) =>
+                sum + Math.pow(d - avgRadius, 2), 0
+            ) / distances.length;
+            const stdDev = Math.sqrt(variance);
+
+            // 5. 检查闭合性（起点和终点的距离）
+            const firstPoint = points[0];
+            const lastPoint = points[points.length - 1];
+            const closureDistance = Math.sqrt(
+                Math.pow(lastPoint.x - firstPoint.x, 2) +
+                Math.pow(lastPoint.y - firstPoint.y, 2)
+            );
+            const closureRatio = closureDistance / avgRadius;
+
+            // 6. 检查圆周率相关性
+            const pathLength = calculatePathLength(points);
+            const expectedCircumference = 2 * Math.PI * avgRadius;
+            const circumferenceRatio = Math.abs(pathLength - expectedCircumference) / expectedCircumference;
+
+            // 7. 综合评分（100分制）
+            let score = 100;
+
+            // 半径一致性评分（0-40分）- 标准差越小越好
+            const consistencyScore = Math.max(0, 40 - (stdDev / avgRadius) * 200);
+
+            // 闭合性评分（0-30分）- 起点终点越接近越好
+            const closureScore = Math.max(0, 30 - closureRatio * 100);
+
+            // 周长准确性评分（0-30分）- 周长越接近2πr越好
+            const circumferenceScore = Math.max(0, 30 - circumferenceRatio * 100);
+
+            score = consistencyScore + closureScore + circumferenceScore;
+
+            // 如果半径太小，降低分数
+            if (avgRadius < 30) {
+                score *= (avgRadius / 30);
+            }
+
+            return Math.max(0, Math.min(100, score));
+        }
+
+        function calculatePathLength(points) {
+            let length = 0;
+            for (let i = 1; i < points.length; i++) {
+                const dx = points[i].x - points[i-1].x;
+                const dy = points[i].y - points[i-1].y;
+                length += Math.sqrt(dx * dx + dy * dy);
+            }
+            return length;
+        }
+
+        function drawIdealCircle(points) {
+            // 计算中心点和平均半径
+            const center = {
+                x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+                y: points.reduce((sum, p) => sum + p.y, 0) / points.length
+            };
+
+            const distances = points.map(p =>
+                Math.sqrt(Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2))
+            );
+            const avgRadius = distances.reduce((sum, d) => sum + d, 0) / distances.length;
+
+            // 绘制理想圆圈（虚线）
+            game.ctx.beginPath();
+            game.ctx.arc(center.x, center.y, avgRadius, 0, 2 * Math.PI);
+            game.ctx.strokeStyle = '#3498db';
+            game.ctx.lineWidth = 2;
+            game.ctx.setLineDash([5, 5]);
+            game.ctx.stroke();
+            game.ctx.setLineDash([]);
+
+            // 绘制中心点
+            game.ctx.beginPath();
+            game.ctx.arc(center.x, center.y, 4, 0, 2 * Math.PI);
+            game.ctx.fillStyle = '#e74c3c';
+            game.ctx.fill();
+        }
+
+        function showScoreFeedback(score) {
+            let message, className;
+
+            if (score >= 90) {
+                message = '完美! 🎉';
+                className = 'perfect';
+            } else if (score >= 75) {
+                message = '很棒! 👍';
+                className = 'good';
+            } else if (score >= 60) {
+                message = '不错 👌';
+                className = 'ok';
+            } else if (score >= 40) {
+                message = '继续努力 💪';
+                className = 'ok';
+            } else {
+                message = '再试一次 🔄';
+                className = 'poor';
+            }
+
+            message += ` ${score.toFixed(1)}分`;
+            showFeedback(message, className);
+        }
+
+        function showFeedback(message, className) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = `show ${className}`;
+
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
+
+        function updateScoreDisplay(currentScore = null) {
+            if (currentScore !== null) {
+                document.getElementById('currentScore').textContent = currentScore.toFixed(1);
+            }
+            document.getElementById('bestScore').textContent = game.bestScore.toFixed(1);
+            document.getElementById('attempts').textContent = game.attempts;
+        }
+
+        function clearCanvas() {
+            game.ctx.clearRect(0, 0, game.canvas.width, game.canvas.height);
+            document.getElementById('currentScore').textContent = '-';
+        }
+
+        // 启动游戏
+        init();
+    </script>
+</body>
+</html>
