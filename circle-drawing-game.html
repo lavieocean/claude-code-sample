@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
             overflow: hidden;
             background: #f8f8f8;
             touch-action: none;
@@ -27,7 +27,7 @@
         }
 
         #header {
-            padding: 20px;
+            padding: 20px 30px;
             background: rgba(255, 255, 255, 0.95);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -44,7 +44,7 @@
 
         #scoreDisplay {
             display: flex;
-            gap: 30px;
+            gap: 35px;
             align-items: center;
         }
 
@@ -56,12 +56,24 @@
             font-size: 12px;
             color: #7f8c8d;
             margin-bottom: 5px;
+            font-weight: 500;
         }
 
         .score-value {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
             color: #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .score-value.updated {
+            animation: scoreUpdate 0.4s ease;
+        }
+
+        @keyframes scoreUpdate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); color: #2ecc71; }
+            100% { transform: scale(1); }
         }
 
         #canvasContainer {
@@ -84,20 +96,40 @@
 
         #feedback {
             position: absolute;
-            top: 50%;
+            top: 45%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 700;
             color: #2ecc71;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
             z-index: 5;
+            text-align: center;
+        }
+
+        #feedbackSub {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, 0);
+            font-size: 18px;
+            font-weight: 500;
+            color: #7f8c8d;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease 0.1s;
+            z-index: 5;
+            text-align: center;
         }
 
         #feedback.show {
+            opacity: 1;
+        }
+
+        #feedbackSub.show {
             opacity: 1;
         }
 
@@ -108,6 +140,7 @@
 
         #feedback.good {
             color: #3498db;
+            animation: pulse 0.5s ease;
         }
 
         #feedback.ok {
@@ -120,7 +153,66 @@
 
         @keyframes pulse {
             0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.2); }
+            50% { transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        /* Bonus飘字动画 */
+        .bonus-float {
+            position: absolute;
+            right: 50px;
+            top: 120px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #f39c12;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+            animation: floatUp 1.5s ease-out forwards;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(0.8);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(-40px) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.9);
+            }
+        }
+
+        .bonus-float.legendary {
+            color: #e74c3c;
+            font-size: 32px;
+            animation: legendaryFloat 2s ease-out forwards;
+        }
+
+        @keyframes legendaryFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(0.5) rotate(-10deg);
+            }
+            15% {
+                opacity: 1;
+                transform: translateY(-20px) scale(1.3) rotate(5deg);
+            }
+            85% {
+                opacity: 1;
+                transform: translateY(-60px) scale(1.1) rotate(-2deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-90px) scale(0.8) rotate(0deg);
+            }
         }
 
         #instructions {
@@ -132,9 +224,69 @@
             padding: 15px 30px;
             border-radius: 25px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 16px;
+            font-size: 15px;
             color: #34495e;
             z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        #instructions.hide {
+            opacity: 0;
+        }
+
+        #statsPanel {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            font-size: 14px;
+            color: #34495e;
+            z-index: 5;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            min-width: 300px;
+        }
+
+        #statsPanel.show {
+            opacity: 1;
+        }
+
+        .stats-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .stats-label {
+            color: #7f8c8d;
+        }
+
+        .stats-value {
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .stats-style {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #ecf0f1;
+            font-size: 13px;
+            color: #95a5a6;
+            text-align: center;
+            font-style: italic;
         }
 
         #resetBtn {
@@ -146,7 +298,7 @@
             color: white;
             border: none;
             border-radius: 25px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
@@ -164,10 +316,33 @@
             transform: translateY(0);
         }
 
-        .stats-detail {
-            font-size: 11px;
-            color: #95a5a6;
-            margin-top: 2px;
+        /* 粒子特效 */
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f39c12;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99;
+            animation: particleFall 1.5s ease-out forwards;
+        }
+
+        @keyframes particleFall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(200px) scale(0.3);
+            }
+        }
+
+        .particle.epic {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            width: 12px;
+            height: 12px;
         }
     </style>
 </head>
@@ -177,15 +352,15 @@
             <div id="title">画完美圆圈 🎯</div>
             <div id="scoreDisplay">
                 <div class="score-item">
-                    <div class="score-label">当前得分</div>
-                    <div class="score-value" id="currentScore">-</div>
+                    <div class="score-label">总分</div>
+                    <div class="score-value" id="totalScore">0</div>
                 </div>
                 <div class="score-item">
-                    <div class="score-label">最高分</div>
+                    <div class="score-label">最高</div>
                     <div class="score-value" id="bestScore">0</div>
                 </div>
                 <div class="score-item">
-                    <div class="score-label">尝试次数</div>
+                    <div class="score-label">画了</div>
                     <div class="score-value" id="attempts">0</div>
                 </div>
             </div>
@@ -194,8 +369,25 @@
         <div id="canvasContainer">
             <canvas id="canvas"></canvas>
             <div id="feedback"></div>
+            <div id="feedbackSub"></div>
             <div id="instructions">按住鼠标或触摸屏幕画一个圆圈</div>
-            <button id="resetBtn">清除画布</button>
+            <div id="statsPanel">
+                <div class="stats-title">你的圆圈统计</div>
+                <div class="stats-row">
+                    <span class="stats-label">平均分</span>
+                    <span class="stats-value" id="avgScore">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">最近3次</span>
+                    <span class="stats-value" id="recent3">-</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">进步幅度</span>
+                    <span class="stats-value" id="improvement">-</span>
+                </div>
+                <div class="stats-style" id="styleText">-</div>
+            </div>
+            <button id="resetBtn">清除</button>
         </div>
     </div>
 
@@ -204,10 +396,14 @@
         const game = {
             isDrawing: false,
             points: [],
+            totalScore: 0,
             bestScore: 0,
             attempts: 0,
             canvas: null,
-            ctx: null
+            ctx: null,
+            history: [],  // 存储最近的基础分
+            startTime: 0,
+            endTime: 0
         };
 
         // 初始化
@@ -219,8 +415,8 @@
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
 
-            // 加载最佳分数
-            game.bestScore = parseFloat(localStorage.getItem('bestCircleScore')) || 0;
+            // 加载数据（session级别）
+            loadGameData();
             updateScoreDisplay();
 
             // 鼠标事件
@@ -260,6 +456,27 @@
             document.getElementById('resetBtn').addEventListener('click', clearCanvas);
         }
 
+        function loadGameData() {
+            const sessionData = sessionStorage.getItem('circleGameData');
+            if (sessionData) {
+                const data = JSON.parse(sessionData);
+                game.totalScore = data.totalScore || 0;
+                game.bestScore = data.bestScore || 0;
+                game.attempts = data.attempts || 0;
+                game.history = data.history || [];
+            }
+        }
+
+        function saveGameData() {
+            const data = {
+                totalScore: game.totalScore,
+                bestScore: game.bestScore,
+                attempts: game.attempts,
+                history: game.history
+            };
+            sessionStorage.setItem('circleGameData', JSON.stringify(data));
+        }
+
         function resizeCanvas() {
             const container = document.getElementById('canvasContainer');
             const size = Math.min(container.clientWidth - 40, container.clientHeight - 40, 800);
@@ -270,6 +487,7 @@
         function startDrawing(e) {
             game.isDrawing = true;
             game.points = [];
+            game.startTime = Date.now();
             clearCanvas();
 
             const rect = game.canvas.getBoundingClientRect();
@@ -279,6 +497,9 @@
 
             game.ctx.beginPath();
             game.ctx.moveTo(x, y);
+
+            // 隐藏提示
+            document.getElementById('instructions').classList.add('hide');
         }
 
         function draw(e) {
@@ -301,100 +522,422 @@
         function endDrawing() {
             if (!game.isDrawing) return;
             game.isDrawing = false;
+            game.endTime = Date.now();
 
             if (game.points.length < 10) {
-                showFeedback('太短了!', 'poor');
+                showFeedback('太短了', '', 'poor');
+                document.getElementById('instructions').classList.remove('hide');
                 return;
             }
 
-            // 计算圆圈的完美度
-            const score = calculateCircleScore(game.points);
-            game.attempts++;
+            // 计算得分和奖励
+            const result = calculateFinalScore(game.points);
 
-            // 更新最佳分数
-            if (score > game.bestScore) {
-                game.bestScore = score;
-                localStorage.setItem('bestCircleScore', score.toString());
+            game.attempts++;
+            game.history.push(result.baseScore);
+            if (game.history.length > 20) game.history.shift();
+
+            // 更新分数
+            game.totalScore += result.finalScore;
+            if (result.baseScore > game.bestScore) {
+                game.bestScore = result.baseScore;
             }
 
-            updateScoreDisplay(score);
-            showScoreFeedback(score);
+            // 保存数据
+            saveGameData();
 
-            // 绘制理想圆圈对比
+            // 显示反馈
+            showFeedback(result.message, result.subMessage, result.className);
+            updateScoreDisplay(result.finalScore);
+
+            // 显示bonus飘字
+            showBonuses(result.bonuses);
+
+            // 绘制理想圆圈
             drawIdealCircle(game.points);
+
+            // 在第5次或第8次显示统计面板
+            if (game.attempts === 5 || game.attempts === 8) {
+                setTimeout(() => showStatsPanel(), 1500);
+            }
+
+            // 特殊效果
+            if (result.hasLegendary) {
+                createParticles(30, true);
+            } else if (result.baseScore >= 90) {
+                createParticles(15, false);
+            }
         }
 
-        function calculateCircleScore(points) {
-            if (points.length < 10) return 0;
+        // 核心评分算法
+        function calculateFinalScore(points) {
+            const drawTime = (game.endTime - game.startTime) / 1000; // 秒
 
-            // 1. 计算中心点（所有点的平均值）
+            // 1. 计算基础几何数据
             const center = {
                 x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
                 y: points.reduce((sum, p) => sum + p.y, 0) / points.length
             };
 
-            // 2. 计算每个点到中心的距离
             const distances = points.map(p =>
                 Math.sqrt(Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2))
             );
 
-            // 3. 计算平均半径
             const avgRadius = distances.reduce((sum, d) => sum + d, 0) / distances.length;
 
-            // 4. 计算标准差（衡量点分布的一致性）
-            const variance = distances.reduce((sum, d) =>
-                sum + Math.pow(d - avgRadius, 2), 0
-            ) / distances.length;
+            // 标准差
+            const variance = distances.reduce((sum, d) => sum + Math.pow(d - avgRadius, 2), 0) / distances.length;
             const stdDev = Math.sqrt(variance);
 
-            // 5. 检查闭合性（起点和终点的距离）
+            // 闭合性
             const firstPoint = points[0];
             const lastPoint = points[points.length - 1];
             const closureDistance = Math.sqrt(
-                Math.pow(lastPoint.x - firstPoint.x, 2) +
-                Math.pow(lastPoint.y - firstPoint.y, 2)
+                Math.pow(lastPoint.x - firstPoint.x, 2) + Math.pow(lastPoint.y - firstPoint.y, 2)
             );
+
+            // 2. 基础分计算（简化且宽容）
+            let baseScore = 100;
+
+            // 圆润度 (50分) - 更宽容
+            const consistencyRatio = stdDev / avgRadius;
+            const roundnessScore = Math.max(0, 50 - consistencyRatio * 150);
+
+            // 闭合度 (30分) - 更宽容
             const closureRatio = closureDistance / avgRadius;
+            const closureScore = Math.max(0, 30 - closureRatio * 60);
 
-            // 6. 检查圆周率相关性
-            const pathLength = calculatePathLength(points);
-            const expectedCircumference = 2 * Math.PI * avgRadius;
-            const circumferenceRatio = Math.abs(pathLength - expectedCircumference) / expectedCircumference;
+            // 流畅度 (20分) - 基于点分布
+            const smoothScore = 20; // 简化，暂时给满分
 
-            // 7. 综合评分（100分制）
-            let score = 100;
+            baseScore = roundnessScore + closureScore + smoothScore;
 
-            // 半径一致性评分（0-40分）- 标准差越小越好
-            const consistencyScore = Math.max(0, 40 - (stdDev / avgRadius) * 200);
-
-            // 闭合性评分（0-30分）- 起点终点越接近越好
-            const closureScore = Math.max(0, 30 - closureRatio * 100);
-
-            // 周长准确性评分（0-30分）- 周长越接近2πr越好
-            const circumferenceScore = Math.max(0, 30 - circumferenceRatio * 100);
-
-            score = consistencyScore + closureScore + circumferenceScore;
-
-            // 如果半径太小，降低分数
+            // 半径太小惩罚
             if (avgRadius < 30) {
-                score *= (avgRadius / 30);
+                baseScore *= (avgRadius / 30);
             }
 
-            return Math.max(0, Math.min(100, score));
-        }
+            baseScore = Math.max(0, Math.min(100, baseScore));
 
-        function calculatePathLength(points) {
-            let length = 0;
-            for (let i = 1; i < points.length; i++) {
-                const dx = points[i].x - points[i-1].x;
-                const dy = points[i].y - points[i-1].y;
-                length += Math.sqrt(dx * dx + dy * dy);
+            // 3. 收集所有bonus
+            let bonuses = [];
+            let bonusTotal = 0;
+
+            // Milestone bonus (前10次)
+            const milestoneBonus = getMilestoneBonus(game.attempts + 1);
+            if (milestoneBonus) {
+                bonuses.push(milestoneBonus);
+                bonusTotal += milestoneBonus.value;
             }
-            return length;
+
+            // 随机幸运加成 (40%触发率)
+            const luckyBonus = getLuckyBonus();
+            if (luckyBonus) {
+                bonuses.push(luckyBonus);
+                bonusTotal += luckyBonus.value;
+            }
+
+            // 技巧识别
+            const skillBonuses = getSkillBonuses(drawTime, avgRadius, closureRatio, consistencyRatio);
+            bonuses = bonuses.concat(skillBonuses);
+            bonusTotal += skillBonuses.reduce((sum, b) => sum + b.value, 0);
+
+            // 连击系统
+            const streakBonus = getStreakBonus(baseScore);
+            if (streakBonus) {
+                bonuses.push(streakBonus);
+                bonusTotal += streakBonus.value;
+            }
+
+            // 进步奖励
+            const progressBonus = getProgressBonus(baseScore);
+            if (progressBonus) {
+                bonuses.push(progressBonus);
+                bonusTotal += progressBonus.value;
+            }
+
+            // 完美奖励
+            const perfectBonus = getPerfectBonus(baseScore);
+            if (perfectBonus) {
+                bonuses.push(perfectBonus);
+                bonusTotal += perfectBonus.value;
+            }
+
+            // 数字彩蛋
+            const numberBonus = getNumberBonus(Math.round(baseScore));
+            if (numberBonus) {
+                bonuses.push(numberBonus);
+                bonusTotal += numberBonus.value;
+            }
+
+            // 4. 计算最终分数
+            const finalScore = Math.round(baseScore + bonusTotal);
+
+            // 5. 生成文案
+            const { message, subMessage, className } = generateFeedback(baseScore, bonuses);
+
+            // 6. 检查是否有传说级bonus
+            const hasLegendary = bonuses.some(b => b.legendary);
+
+            return {
+                baseScore,
+                finalScore,
+                bonuses,
+                message,
+                subMessage,
+                className,
+                hasLegendary
+            };
         }
 
+        // Milestone奖励
+        function getMilestoneBonus(attempt) {
+            const milestones = {
+                1: { text: '第一笔', value: 10 },
+                2: { text: '又一个', value: 5 },
+                3: { text: '上手了', value: 8 },
+                5: { text: '停不下来', value: 12 },
+                7: { text: '认真的', value: 15 },
+                10: { text: '画了10个！', value: 25 }
+            };
+            return milestones[attempt] || null;
+        }
+
+        // 随机幸运加成
+        function getLuckyBonus() {
+            const rand = Math.random();
+            if (rand < 0.005) return { text: '传说！！', value: 200, legendary: true };
+            if (rand < 0.015) return { text: '暴击', value: 88 };
+            if (rand < 0.045) return { text: '大吉', value: 30 };
+            if (rand < 0.125) return { text: 'Lucky', value: 15 };
+            if (rand < 0.275) return { text: '小确幸', value: 8 };
+            if (rand < 0.475) return { text: '运气', value: 3 };
+            return null;
+        }
+
+        // 技巧bonus
+        function getSkillBonuses(drawTime, radius, closureRatio, consistencyRatio) {
+            const bonuses = [];
+
+            // 速度
+            if (drawTime < 0.5) bonuses.push({ text: '闪电', value: 15 });
+            else if (drawTime < 1) bonuses.push({ text: '快', value: 8 });
+            else if (drawTime > 8) bonuses.push({ text: '稳', value: 8 });
+            else if (drawTime > 15) bonuses.push({ text: '禅', value: 12 });
+
+            // 大小
+            if (radius < 50) bonuses.push({ text: '迷你', value: 5 });
+            else if (radius > 280) bonuses.push({ text: '大圆', value: 5 });
+            else if (radius >= 140 && radius <= 180) bonuses.push({ text: '刚刚好', value: 8 });
+
+            // 形状识别
+            if (consistencyRatio < 0.08 && closureRatio < 0.15) {
+                // 非常圆
+            } else if (closureRatio > 0.8) {
+                bonuses.push({ text: 'C', value: 5 });
+            }
+
+            return bonuses;
+        }
+
+        // 连击bonus
+        function getStreakBonus(currentScore) {
+            if (game.history.length < 2) return null;
+
+            const recent = game.history.slice(-2);
+            if (recent.every(s => s >= 70) && currentScore >= 70) {
+                return { text: '连击', value: 10 };
+            }
+            if (recent.every(s => s >= 85) && currentScore >= 85) {
+                return { text: '连击！', value: 20 };
+            }
+            if (game.history.length >= 3) {
+                const recent3 = game.history.slice(-3);
+                if (recent3.every(s => s >= 70) && currentScore >= 70) {
+                    return { text: '3连！', value: 25 };
+                }
+            }
+            return null;
+        }
+
+        // 进步奖励
+        function getProgressBonus(currentScore) {
+            if (game.history.length < 2) return null;
+
+            const recent = game.history.slice(-2);
+            const isImproving = recent.every((score, i) => i === 0 || score > recent[i - 1]);
+
+            if (isImproving && currentScore > recent[recent.length - 1]) {
+                const improvement = currentScore - recent[recent.length - 1];
+                if (improvement >= 20) return { text: '飞跃', value: 25 };
+                if (improvement >= 10) return { text: '进步了', value: 10 };
+            }
+
+            return null;
+        }
+
+        // 完美奖励
+        function getPerfectBonus(score) {
+            if (score >= 98) return { text: '完美', value: 40 };
+            if (score >= 95) return { text: '近乎完美', value: 20 };
+            if (score >= 90 && score > game.bestScore) return { text: '新纪录', value: 20 };
+            return null;
+        }
+
+        // 数字彩蛋
+        function getNumberBonus(score) {
+            if (score === 88) return { text: '发发发', value: 88 };
+            if (score === 66) return { text: '溜', value: 66 };
+            if (score === 69) return { text: 'Nice', value: 69 };
+            if (score === 99) return { text: '久久', value: 99 };
+            return null;
+        }
+
+        // 生成文案
+        function generateFeedback(baseScore, bonuses) {
+            let message = '';
+            let className = '';
+            let subMessage = '';
+
+            // 主文案 - Harry Dry风格
+            if (baseScore >= 95) {
+                const options = ['？？？', 'AI吧', '圆规吗', '开挂'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'perfect';
+            } else if (baseScore >= 88) {
+                const options = ['绝了', '丝滑', '太稳了', '这就是圆'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'perfect';
+            } else if (baseScore >= 80) {
+                const options = ['哇哦', '很圆', '高手', '👀'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'good';
+            } else if (baseScore >= 70) {
+                const options = ['不错', '可以', '稳', '像回事了'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'good';
+            } else if (baseScore >= 50) {
+                const options = ['有想法', '懂了', '在进步', '慢慢来'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'ok';
+            } else if (baseScore >= 30) {
+                const options = ['再来', '方的也行', '手抖了？'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'ok';
+            } else {
+                const options = ['换手试试？', 'abstract art', '这是...土豆？'];
+                message = options[Math.floor(Math.random() * options.length)];
+                className = 'poor';
+            }
+
+            // 副文案
+            if (game.history.length >= 3) {
+                const avg = game.history.reduce((sum, s) => sum + s, 0) / game.history.length;
+                const diff = baseScore - avg;
+                if (diff > 5) {
+                    subMessage = `超过平均 ${diff.toFixed(0)} 分`;
+                } else if (diff < -5) {
+                    subMessage = `稍低于平均`;
+                } else {
+                    subMessage = `稳定发挥`;
+                }
+            } else if (game.attempts === 0) {
+                subMessage = `基础分 ${baseScore.toFixed(0)}`;
+            } else {
+                subMessage = `基础分 ${baseScore.toFixed(0)}`;
+            }
+
+            return { message, subMessage, className };
+        }
+
+        // 显示反馈
+        function showFeedback(message, subMessage, className) {
+            const feedback = document.getElementById('feedback');
+            const feedbackSub = document.getElementById('feedbackSub');
+
+            feedback.textContent = message;
+            feedback.className = `show ${className}`;
+
+            feedbackSub.textContent = subMessage;
+            feedbackSub.className = 'show';
+
+            setTimeout(() => {
+                feedback.classList.remove('show');
+                feedbackSub.classList.remove('show');
+            }, 2000);
+        }
+
+        // 显示bonus飘字
+        function showBonuses(bonuses) {
+            bonuses.forEach((bonus, index) => {
+                setTimeout(() => {
+                    const bonusEl = document.createElement('div');
+                    bonusEl.className = bonus.legendary ? 'bonus-float legendary' : 'bonus-float';
+                    bonusEl.textContent = `+${bonus.value} ${bonus.text}`;
+                    bonusEl.style.top = (120 + index * 40) + 'px';
+                    document.getElementById('canvasContainer').appendChild(bonusEl);
+
+                    setTimeout(() => bonusEl.remove(), 1500);
+                }, index * 200);
+            });
+        }
+
+        // 创建粒子效果
+        function createParticles(count, epic) {
+            const container = document.getElementById('canvasContainer');
+            const rect = container.getBoundingClientRect();
+
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = epic ? 'particle epic' : 'particle';
+                    particle.style.left = (rect.width / 2 + (Math.random() - 0.5) * 200) + 'px';
+                    particle.style.top = (rect.height / 2 - 100) + 'px';
+                    container.appendChild(particle);
+
+                    setTimeout(() => particle.remove(), 1500);
+                }, i * 30);
+            }
+        }
+
+        // 显示统计面板
+        function showStatsPanel() {
+            if (game.history.length === 0) return;
+
+            const avg = game.history.reduce((sum, s) => sum + s, 0) / game.history.length;
+            const recent3 = game.history.slice(-3).map(s => s.toFixed(0)).join(', ');
+
+            let improvement = '-';
+            if (game.history.length >= 3) {
+                const first3Avg = game.history.slice(0, 3).reduce((sum, s) => sum + s, 0) / 3;
+                const last3Avg = game.history.slice(-3).reduce((sum, s) => sum + s, 0) / 3;
+                const diff = last3Avg - first3Avg;
+                improvement = diff > 0 ? `+${diff.toFixed(0)}` : diff.toFixed(0);
+            }
+
+            // 风格识别
+            let style = '';
+            const avgTime = (game.endTime - game.startTime) / 1000;
+            if (avg >= 80) style = '稳中求进型';
+            else if (avgTime < 2) style = '快准狠型';
+            else if (avgTime > 6) style = '慢工细作型';
+            else style = '探索成长型';
+
+            document.getElementById('avgScore').textContent = avg.toFixed(1);
+            document.getElementById('recent3').textContent = recent3;
+            document.getElementById('improvement').textContent = improvement;
+            document.getElementById('styleText').textContent = `你的风格: ${style}`;
+
+            const panel = document.getElementById('statsPanel');
+            panel.classList.add('show');
+
+            setTimeout(() => {
+                panel.classList.remove('show');
+            }, 4000);
+        }
+
+        // 绘制理想圆
         function drawIdealCircle(points) {
-            // 计算中心点和平均半径
             const center = {
                 x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
                 y: points.reduce((sum, p) => sum + p.y, 0) / points.length
@@ -405,7 +948,6 @@
             );
             const avgRadius = distances.reduce((sum, d) => sum + d, 0) / distances.length;
 
-            // 绘制理想圆圈（虚线）
             game.ctx.beginPath();
             game.ctx.arc(center.x, center.y, avgRadius, 0, 2 * Math.PI);
             game.ctx.strokeStyle = '#3498db';
@@ -414,61 +956,35 @@
             game.ctx.stroke();
             game.ctx.setLineDash([]);
 
-            // 绘制中心点
             game.ctx.beginPath();
             game.ctx.arc(center.x, center.y, 4, 0, 2 * Math.PI);
             game.ctx.fillStyle = '#e74c3c';
             game.ctx.fill();
         }
 
-        function showScoreFeedback(score) {
-            let message, className;
+        // 更新分数显示
+        function updateScoreDisplay(addedScore = 0) {
+            const totalEl = document.getElementById('totalScore');
+            const bestEl = document.getElementById('bestScore');
+            const attemptsEl = document.getElementById('attempts');
 
-            if (score >= 90) {
-                message = '完美! 🎉';
-                className = 'perfect';
-            } else if (score >= 75) {
-                message = '很棒! 👍';
-                className = 'good';
-            } else if (score >= 60) {
-                message = '不错 👌';
-                className = 'ok';
-            } else if (score >= 40) {
-                message = '继续努力 💪';
-                className = 'ok';
-            } else {
-                message = '再试一次 🔄';
-                className = 'poor';
+            if (addedScore > 0) {
+                totalEl.classList.add('updated');
+                setTimeout(() => totalEl.classList.remove('updated'), 400);
             }
 
-            message += ` ${score.toFixed(1)}分`;
-            showFeedback(message, className);
+            totalEl.textContent = game.totalScore;
+            bestEl.textContent = game.bestScore.toFixed(0);
+            attemptsEl.textContent = game.attempts;
         }
 
-        function showFeedback(message, className) {
-            const feedback = document.getElementById('feedback');
-            feedback.textContent = message;
-            feedback.className = `show ${className}`;
-
-            setTimeout(() => {
-                feedback.classList.remove('show');
-            }, 2000);
-        }
-
-        function updateScoreDisplay(currentScore = null) {
-            if (currentScore !== null) {
-                document.getElementById('currentScore').textContent = currentScore.toFixed(1);
-            }
-            document.getElementById('bestScore').textContent = game.bestScore.toFixed(1);
-            document.getElementById('attempts').textContent = game.attempts;
-        }
-
+        // 清除画布
         function clearCanvas() {
             game.ctx.clearRect(0, 0, game.canvas.width, game.canvas.height);
-            document.getElementById('currentScore').textContent = '-';
+            document.getElementById('instructions').classList.remove('hide');
         }
 
-        // 启动游戏
+        // 启动
         init();
     </script>
 </body>
