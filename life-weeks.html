@@ -82,6 +82,13 @@
             margin: var(--spacing-lg) 0;
         }
 
+        .input-divider {
+            margin: var(--spacing-md) 0;
+            text-align: center;
+            color: var(--color-text-light);
+            font-size: 0.85rem;
+        }
+
         label {
             display: block;
             font-size: 0.9rem;
@@ -89,7 +96,8 @@
             color: var(--color-text-light);
         }
 
-        input[type="date"] {
+        input[type="date"],
+        input[type="number"] {
             width: 100%;
             padding: var(--spacing-sm);
             border: 1px solid var(--color-border);
@@ -98,12 +106,37 @@
             font-family: inherit;
             color: var(--color-text);
             border-radius: 2px;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, opacity 0.2s;
         }
 
-        input[type="date"]:focus {
+        input[type="date"]:focus,
+        input[type="number"]:focus {
             outline: none;
             border-color: var(--color-accent);
+        }
+
+        input:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: var(--color-bg);
+        }
+
+        .age-input-wrapper {
+            position: relative;
+        }
+
+        .age-suffix {
+            position: absolute;
+            right: var(--spacing-sm);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        input[type="number"] {
+            padding-right: 90px;
         }
 
         button {
@@ -134,11 +167,18 @@
             padding: var(--spacing-xs) var(--spacing-md);
             font-size: 0.85rem;
             margin-top: var(--spacing-sm);
+            margin-right: var(--spacing-sm);
         }
 
         button.secondary:hover {
             border-color: var(--color-accent);
             background: transparent;
+        }
+
+        .button-group {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-lg);
         }
 
         /* Step 2: Visualization */
@@ -223,6 +263,7 @@
             border: 1px solid var(--color-border);
             border-radius: 1px;
             transition: transform 0.2s, background-color 0.2s;
+            position: relative;
         }
 
         .week.lived {
@@ -233,6 +274,39 @@
         .week:hover {
             transform: scale(1.5);
             z-index: 10;
+        }
+
+        /* Feature 1: Current week highlight */
+        .week.current-week::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 2px solid var(--color-accent);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        /* Desktop: pulsing animation */
+        @media (min-width: 769px) {
+            .week.current-week {
+                animation: pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.1);
+                }
+            }
+        }
+
+        /* Mobile: static ring only (save battery) */
+        @media (max-width: 768px) {
+            .week.current-week {
+                /* No animation on mobile */
+            }
         }
 
         .reflection {
@@ -271,6 +345,14 @@
             .week:hover {
                 transform: scale(2);
             }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button.secondary {
+                margin-right: 0;
+            }
         }
 
         @media (max-width: 480px) {
@@ -305,8 +387,19 @@
             <div class="input-group">
                 <label for="birthdate">When were you born?</label>
                 <input type="date" id="birthdate" max="">
-                <div class="error" id="error"></div>
             </div>
+
+            <div class="input-divider">Or just enter your age</div>
+
+            <div class="input-group">
+                <label for="age">Age</label>
+                <div class="age-input-wrapper">
+                    <input type="number" id="age" min="0" max="120" step="0.1" placeholder="e.g., 32">
+                    <span class="age-suffix">years old</span>
+                </div>
+            </div>
+
+            <div class="error" id="error"></div>
 
             <button id="visualizeBtn">Visualize your life</button>
         </div>
@@ -333,7 +426,7 @@
 
             <div class="grid-container">
                 <div class="grid-header">
-                    <div class="grid-title">90 years × 52 weeks</div>
+                    <div class="grid-title" id="gridTitle">90 years × 52 weeks</div>
                     <div class="legend">
                         <div class="legend-item">
                             <div class="legend-box lived"></div>
@@ -352,7 +445,10 @@
                 "Time is the most valuable thing a person can spend."
             </div>
 
-            <button class="secondary" id="resetBtn">Start over</button>
+            <div class="button-group">
+                <button class="secondary" id="saveBtn">⬇ Save as image</button>
+                <button class="secondary" id="resetBtn">Start over</button>
+            </div>
         </div>
     </div>
 
@@ -366,16 +462,44 @@
         const step1 = document.getElementById('step1');
         const step2 = document.getElementById('step2');
         const birthdateInput = document.getElementById('birthdate');
+        const ageInput = document.getElementById('age');
         const visualizeBtn = document.getElementById('visualizeBtn');
         const resetBtn = document.getElementById('resetBtn');
+        const saveBtn = document.getElementById('saveBtn');
         const errorEl = document.getElementById('error');
         const weeksGrid = document.getElementById('weeksGrid');
+
+        // State
+        let currentWeeksLived = 0;
+        let isApproximate = false;
+        let currentAge = 0;
 
         // Set max date to today
         const today = new Date().toISOString().split('T')[0];
         birthdateInput.setAttribute('max', today);
 
-        // Calculate weeks lived
+        // Feature 3: Cross-disable inputs
+        birthdateInput.addEventListener('input', () => {
+            if (birthdateInput.value) {
+                ageInput.disabled = true;
+                ageInput.value = '';
+            } else {
+                ageInput.disabled = false;
+            }
+            errorEl.classList.remove('show');
+        });
+
+        ageInput.addEventListener('input', () => {
+            if (ageInput.value) {
+                birthdateInput.disabled = true;
+                birthdateInput.value = '';
+            } else {
+                birthdateInput.disabled = false;
+            }
+            errorEl.classList.remove('show');
+        });
+
+        // Calculate weeks from birthdate
         function calculateWeeks(birthdate) {
             const birth = new Date(birthdate);
             const now = new Date();
@@ -384,32 +508,46 @@
             return diffWeeks;
         }
 
-        // Validate input
-        function validateBirthdate(birthdate) {
-            if (!birthdate) {
-                return 'Please enter your birth date';
-            }
-
-            const birth = new Date(birthdate);
-            const now = new Date();
-
-            if (birth > now) {
-                return 'Birth date cannot be in the future';
-            }
-
-            const age = (now - birth) / (1000 * 60 * 60 * 24 * 365.25);
-            if (age > 120) {
-                return 'Please enter a valid birth date';
-            }
-
-            return null;
+        // Calculate weeks from age
+        function calculateWeeksFromAge(age) {
+            return Math.floor(parseFloat(age) * WEEKS_PER_YEAR);
         }
 
-        // Create grid
+        // Validate input
+        function validateInput() {
+            if (birthdateInput.value) {
+                const birth = new Date(birthdateInput.value);
+                const now = new Date();
+
+                if (birth > now) {
+                    return 'Birth date cannot be in the future';
+                }
+
+                const age = (now - birth) / (1000 * 60 * 60 * 24 * 365.25);
+                if (age > 120) {
+                    return 'Please enter a valid birth date';
+                }
+
+                return null;
+            } else if (ageInput.value) {
+                const age = parseFloat(ageInput.value);
+                if (isNaN(age) || age < 0 || age > 120) {
+                    return 'Please enter an age between 0 and 120';
+                }
+                return null;
+            } else {
+                return 'Please enter your birth date or age';
+            }
+        }
+
+        // Create grid with current week highlight
         function createGrid(weeksLived) {
             weeksGrid.innerHTML = '';
 
-            for (let i = 0; i < TOTAL_WEEKS; i++) {
+            // Extend grid if user is beyond 90 years
+            const totalWeeksToShow = Math.max(TOTAL_WEEKS, weeksLived + 52);
+
+            for (let i = 0; i < totalWeeksToShow; i++) {
                 const week = document.createElement('div');
                 week.className = 'week';
 
@@ -417,24 +555,41 @@
                     week.classList.add('lived');
                 }
 
+                // Feature 1: Highlight current week
+                if (i === weeksLived - 1 && weeksLived > 0) {
+                    week.classList.add('current-week');
+                }
+
                 weeksGrid.appendChild(week);
+            }
+
+            // Update grid title if beyond 90 years
+            if (weeksLived > TOTAL_WEEKS) {
+                const yearsLived = Math.floor(weeksLived / WEEKS_PER_YEAR);
+                document.getElementById('gridTitle').textContent =
+                    `${yearsLived} years × 52 weeks (extended)`;
+            } else {
+                document.getElementById('gridTitle').textContent = '90 years × 52 weeks';
             }
         }
 
         // Update statistics
-        function updateStats(weeksLived) {
+        function updateStats(weeksLived, approximate = false) {
             const weeksRemaining = Math.max(0, TOTAL_WEEKS - weeksLived);
             const percentLived = Math.min(100, ((weeksLived / TOTAL_WEEKS) * 100).toFixed(1));
 
-            document.getElementById('weeksLived').textContent = weeksLived.toLocaleString();
-            document.getElementById('weeksRemaining').textContent = weeksRemaining.toLocaleString();
+            const prefix = approximate ? '~' : '';
+
+            document.getElementById('weeksLived').textContent =
+                prefix + weeksLived.toLocaleString();
+            document.getElementById('weeksRemaining').textContent =
+                prefix + weeksRemaining.toLocaleString();
             document.getElementById('percentLived').textContent = percentLived + '%';
         }
 
         // Show visualization
         function showVisualization() {
-            const birthdate = birthdateInput.value;
-            const error = validateBirthdate(birthdate);
+            const error = validateInput();
 
             if (error) {
                 errorEl.textContent = error;
@@ -444,10 +599,24 @@
 
             errorEl.classList.remove('show');
 
-            const weeksLived = calculateWeeks(birthdate);
+            let weeksLived;
+            let approximate = false;
+
+            if (birthdateInput.value) {
+                weeksLived = calculateWeeks(birthdateInput.value);
+                currentAge = Math.floor(weeksLived / WEEKS_PER_YEAR);
+            } else {
+                const age = parseFloat(ageInput.value);
+                weeksLived = calculateWeeksFromAge(age);
+                approximate = true;
+                currentAge = Math.floor(age);
+            }
+
+            currentWeeksLived = weeksLived;
+            isApproximate = approximate;
 
             // Update stats
-            updateStats(weeksLived);
+            updateStats(weeksLived, approximate);
 
             // Create grid
             createGrid(weeksLived);
@@ -457,17 +626,121 @@
             step2.classList.add('active');
         }
 
+        // Feature 2: Save as image
+        async function saveAsImage() {
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+
+            try {
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                const width = 1200;
+                const height = 1600;
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // White background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, width, height);
+
+                // Title
+                ctx.fillStyle = '#2a2a2a';
+                ctx.font = '400 32px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+                ctx.fillText('Life in weeks', 60, 100);
+
+                // Draw grid
+                const gridSize = 1000;
+                const cols = 52;
+                const rows = 90;
+                const cellSize = gridSize / cols;
+                const startX = (width - gridSize) / 2;
+                const startY = 200;
+
+                const totalWeeksToShow = Math.max(TOTAL_WEEKS, currentWeeksLived + 52);
+
+                for (let i = 0; i < totalWeeksToShow; i++) {
+                    const row = Math.floor(i / cols);
+                    const col = i % cols;
+                    const x = startX + (col * cellSize);
+                    const y = startY + (row * cellSize);
+
+                    // Draw week square
+                    if (i < currentWeeksLived) {
+                        ctx.fillStyle = '#2a2a2a';
+                        ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+                    } else {
+                        ctx.fillStyle = '#f0f0f0';
+                        ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+                        ctx.strokeStyle = '#e0e0e0';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x, y, cellSize - 1, cellSize - 1);
+                    }
+
+                    // Highlight current week
+                    if (i === currentWeeksLived - 1 && currentWeeksLived > 0) {
+                        ctx.strokeStyle = '#4a4a4a';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x - 2, y - 2, cellSize + 2, cellSize + 2);
+                    }
+                }
+
+                // Draw statistics
+                const statsY = startY + (Math.ceil(totalWeeksToShow / cols) * cellSize) + 80;
+
+                ctx.font = '300 28px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+                const prefix = isApproximate ? '~' : '';
+
+                ctx.fillText(`${prefix}${currentWeeksLived.toLocaleString()} weeks lived`, 60, statsY);
+
+                const weeksRemaining = Math.max(0, TOTAL_WEEKS - currentWeeksLived);
+                ctx.fillText(`${prefix}${weeksRemaining.toLocaleString()} weeks remaining`, 60, statsY + 50);
+
+                // Age in corner
+                ctx.font = '400 18px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+                ctx.fillStyle = '#6a6a6a';
+                ctx.fillText(`${currentAge} years old`, 60, height - 60);
+
+                // Download
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `life-in-weeks-${currentAge}years.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                }, 'image/png');
+
+            } catch (err) {
+                console.error('Error saving image:', err);
+                alert('Sorry, could not save image. Please try taking a screenshot instead.');
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            }
+        }
+
         // Reset
         function reset() {
             step2.classList.remove('active');
             step1.classList.add('active');
             birthdateInput.value = '';
+            ageInput.value = '';
+            birthdateInput.disabled = false;
+            ageInput.disabled = false;
             errorEl.classList.remove('show');
+            currentWeeksLived = 0;
+            isApproximate = false;
+            currentAge = 0;
         }
 
         // Event listeners
         visualizeBtn.addEventListener('click', showVisualization);
         resetBtn.addEventListener('click', reset);
+        saveBtn.addEventListener('click', saveAsImage);
 
         birthdateInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -475,9 +748,10 @@
             }
         });
 
-        // Clear error on input
-        birthdateInput.addEventListener('input', () => {
-            errorEl.classList.remove('show');
+        ageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                showVisualization();
+            }
         });
     </script>
 </body>
