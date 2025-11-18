@@ -12,13 +12,6 @@
         }
 
         :root {
-            --color-bg: #fafafa;
-            --color-text: #2a2a2a;
-            --color-text-light: #6a6a6a;
-            --color-border: #e0e0e0;
-            --color-lived: #2a2a2a;
-            --color-remaining: #f0f0f0;
-            --color-accent: #4a4a4a;
             --spacing-xs: 8px;
             --spacing-sm: 16px;
             --spacing-md: 24px;
@@ -26,8 +19,98 @@
             --spacing-xl: 64px;
         }
 
+        /* Theme: Apple (Default) */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            --color-bg: #f5f5f7;
+            --color-text: #1d1d1f;
+            --color-text-light: #86868b;
+            --color-border: #d2d2d7;
+            --color-lived: #0071e3;
+            --color-remaining: #f5f5f7;
+            --color-current: #006edb;
+            --color-accent: #0071e3;
+            --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            --font-weight-normal: 400;
+            --font-weight-bold: 600;
+            --border-radius: 3px;
+            --week-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --transition-speed: 0.3s;
+        }
+
+        /* Theme: Alessi */
+        body.theme-alessi {
+            --color-bg: #fffef8;
+            --color-text: #2d2d2d;
+            --color-text-light: #7d7d7d;
+            --color-border: #ffe6b3;
+            --color-lived: #ff6b6b;
+            --color-remaining: #fff8e7;
+            --color-current: #ff006e;
+            --color-accent: #4ecdc4;
+            --font-family: 'Helvetica Neue', 'Arial Rounded MT Bold', sans-serif;
+            --font-weight-normal: 400;
+            --font-weight-bold: 700;
+            --border-radius: 8px;
+            --week-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            --transition-speed: 0.2s;
+        }
+
+        /* Theme: Bauhaus */
+        body.theme-bauhaus {
+            --color-bg: #ffffff;
+            --color-text: #000000;
+            --color-text-light: #555555;
+            --color-border: #000000;
+            --color-lived: #000000;
+            --color-remaining: #ffffff;
+            --color-current: #e63946;
+            --color-accent: #457b9d;
+            --font-family: 'Helvetica', 'Arial', sans-serif;
+            --font-weight-normal: 700;
+            --font-weight-bold: 900;
+            --border-radius: 0px;
+            --week-shadow: none;
+            --transition-speed: 0.1s;
+        }
+
+        /* Theme: Wabi-sabi */
+        body.theme-wabisabi {
+            --color-bg: #f9f7f4;
+            --color-text: #3d3d3d;
+            --color-text-light: #9d9d9d;
+            --color-border: #e5e0da;
+            --color-lived: #2d2d2d;
+            --color-remaining: #f5f3f0;
+            --color-current: #8b7355;
+            --color-accent: #d4c5b9;
+            --font-family: Georgia, 'Times New Roman', serif;
+            --font-weight-normal: 300;
+            --font-weight-bold: 400;
+            --border-radius: 2px;
+            --week-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            --transition-speed: 0.5s;
+        }
+
+        /* Theme: Brutalist */
+        body.theme-brutalist {
+            --color-bg: #e8e8e8;
+            --color-text: #000000;
+            --color-text-light: #666666;
+            --color-border: #000000;
+            --color-lived: #000000;
+            --color-remaining: #cccccc;
+            --color-current: #ff0000;
+            --color-accent: #333333;
+            --font-family: 'Courier New', Courier, monospace;
+            --font-weight-normal: 400;
+            --font-weight-bold: 400;
+            --border-radius: 0px;
+            --week-shadow: 2px 2px 0 rgba(0,0,0,1);
+            --transition-speed: 0s;
+        }
+
+        body {
+            font-family: var(--font-family);
             background-color: var(--color-bg);
             color: var(--color-text);
             line-height: 1.6;
@@ -36,6 +119,7 @@
             flex-direction: column;
             align-items: center;
             padding: var(--spacing-md);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
         .container {
@@ -46,15 +130,24 @@
 
         h1 {
             font-size: 1.5rem;
-            font-weight: 400;
+            font-weight: var(--font-weight-normal);
             margin-bottom: var(--spacing-sm);
             letter-spacing: -0.02em;
+        }
+
+        body.theme-bauhaus h1 {
+            text-transform: uppercase;
+            font-weight: var(--font-weight-bold);
         }
 
         p {
             color: var(--color-text-light);
             font-size: 0.95rem;
             margin-bottom: var(--spacing-md);
+        }
+
+        body.theme-wabisabi p {
+            line-height: 1.8;
         }
 
         /* Step 1: Input */
@@ -76,6 +169,10 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        body.theme-brutalist .step {
+            animation: none;
         }
 
         .input-group {
@@ -105,8 +202,19 @@
             font-size: 1rem;
             font-family: inherit;
             color: var(--color-text);
-            border-radius: 2px;
+            border-radius: var(--border-radius);
             transition: border-color 0.2s, opacity 0.2s;
+        }
+
+        body.theme-bauhaus input[type="date"],
+        body.theme-bauhaus input[type="number"] {
+            border-width: 3px;
+        }
+
+        body.theme-brutalist input[type="date"],
+        body.theme-brutalist input[type="number"] {
+            border-width: 2px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
         }
 
         input[type="date"]:focus,
@@ -146,9 +254,10 @@
             padding: var(--spacing-sm) var(--spacing-lg);
             font-size: 0.95rem;
             font-family: inherit;
+            font-weight: var(--font-weight-normal);
             cursor: pointer;
-            border-radius: 2px;
-            transition: background-color 0.2s;
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s, transform 0.1s;
             margin-top: var(--spacing-md);
         }
 
@@ -158,6 +267,10 @@
 
         button:active {
             transform: translateY(1px);
+        }
+
+        body.theme-brutalist button:active {
+            transform: translate(2px, 2px);
         }
 
         button.secondary {
@@ -170,9 +283,17 @@
             margin-right: var(--spacing-sm);
         }
 
+        body.theme-bauhaus button.secondary {
+            border-width: 3px;
+        }
+
         button.secondary:hover {
             border-color: var(--color-accent);
             background: transparent;
+        }
+
+        body.theme-alessi button {
+            border-radius: 12px;
         }
 
         .button-group {
@@ -188,20 +309,114 @@
             border-bottom: 1px solid var(--color-border);
         }
 
+        body.theme-bauhaus .stats {
+            border-bottom-width: 3px;
+        }
+
         .stat-item {
             margin-bottom: var(--spacing-md);
         }
 
         .stat-value {
             font-size: 2rem;
-            font-weight: 300;
+            font-weight: var(--font-weight-normal);
             letter-spacing: -0.03em;
             margin-bottom: var(--spacing-xs);
+        }
+
+        body.theme-bauhaus .stat-value {
+            font-weight: var(--font-weight-bold);
+        }
+
+        body.theme-brutalist .stat-value {
+            font-family: 'Courier New', monospace;
         }
 
         .stat-label {
             font-size: 0.9rem;
             color: var(--color-text-light);
+        }
+
+        body.theme-bauhaus .stat-label {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            margin: var(--spacing-lg) 0;
+            padding: var(--spacing-md);
+            background: rgba(255,255,255,0.5);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--color-border);
+        }
+
+        .theme-selector-title {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            margin-bottom: var(--spacing-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--spacing-sm);
+        }
+
+        .theme-option {
+            padding: var(--spacing-sm);
+            border: 2px solid var(--color-border);
+            border-radius: var(--border-radius);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .theme-option:hover {
+            border-color: var(--color-accent);
+            transform: translateY(-2px);
+        }
+
+        .theme-option.active {
+            border-color: var(--color-accent);
+            background: var(--color-accent);
+            color: white;
+        }
+
+        body.theme-brutalist .theme-option:hover {
+            transform: none;
+        }
+
+        .theme-option-name {
+            font-size: 0.9rem;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 4px;
+        }
+
+        .theme-option-desc {
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+        }
+
+        .theme-option.active .theme-option-desc {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .theme-preview {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+
+        .theme-preview-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
         }
 
         .grid-container {
@@ -238,7 +453,7 @@
         .legend-box {
             width: 12px;
             height: 12px;
-            border-radius: 1px;
+            border-radius: var(--border-radius);
         }
 
         .legend-box.lived {
@@ -257,18 +472,66 @@
             margin-bottom: var(--spacing-lg);
         }
 
+        body.theme-brutalist .weeks-grid {
+            gap: 3px;
+        }
+
         .week {
             aspect-ratio: 1;
             background: var(--color-remaining);
             border: 1px solid var(--color-border);
-            border-radius: 1px;
-            transition: transform 0.2s, background-color 0.2s;
+            border-radius: var(--border-radius);
+            transition: transform var(--transition-speed), background-color var(--transition-speed);
             position: relative;
         }
 
         .week.lived {
             background: var(--color-lived);
             border-color: var(--color-lived);
+            box-shadow: var(--week-shadow);
+        }
+
+        /* Alessi: random colors for lived weeks */
+        body.theme-alessi .week.lived:nth-child(4n+1) {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        body.theme-alessi .week.lived:nth-child(4n+2) {
+            background: #4ecdc4;
+            border-color: #4ecdc4;
+        }
+
+        body.theme-alessi .week.lived:nth-child(4n+3) {
+            background: #ffe66d;
+            border-color: #ffe66d;
+        }
+
+        body.theme-alessi .week.lived:nth-child(4n+4) {
+            background: #a8e6cf;
+            border-color: #a8e6cf;
+        }
+
+        /* Wabi-sabi: varying opacity */
+        body.theme-wabisabi .week.lived {
+            opacity: 0.85;
+        }
+
+        body.theme-wabisabi .week.lived:nth-child(3n) {
+            opacity: 0.7;
+        }
+
+        body.theme-wabisabi .week.lived:nth-child(5n) {
+            opacity: 0.95;
+        }
+
+        /* Bauhaus: thick borders */
+        body.theme-bauhaus .week {
+            border-width: 2px;
+        }
+
+        body.theme-brutalist .week {
+            border-width: 2px;
         }
 
         .week:hover {
@@ -276,14 +539,38 @@
             z-index: 10;
         }
 
-        /* Feature 1: Current week highlight */
+        body.theme-alessi .week:hover {
+            transform: scale(1.5) rotate(2deg);
+        }
+
+        body.theme-brutalist .week:hover {
+            transform: scale(1.3);
+        }
+
+        /* Current week highlight */
         .week.current-week::after {
             content: '';
             position: absolute;
             inset: -2px;
-            border: 2px solid var(--color-accent);
-            border-radius: 2px;
+            border: 2px solid var(--color-current);
+            border-radius: var(--border-radius);
             pointer-events: none;
+        }
+
+        body.theme-bauhaus .week.current-week::after {
+            border-width: 4px;
+        }
+
+        body.theme-brutalist .week.current-week::after {
+            border-width: 3px;
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-1px, 1px); }
+            50% { transform: translate(1px, -1px); }
+            75% { transform: translate(-1px, -1px); }
         }
 
         /* Desktop: pulsing animation */
@@ -300,12 +587,9 @@
                     transform: scale(1.1);
                 }
             }
-        }
 
-        /* Mobile: static ring only (save battery) */
-        @media (max-width: 768px) {
-            .week.current-week {
-                /* No animation on mobile */
+            body.theme-brutalist .week.current-week {
+                animation: none;
             }
         }
 
@@ -316,6 +600,27 @@
             font-size: 0.9rem;
             color: var(--color-text-light);
             font-style: italic;
+        }
+
+        body.theme-bauhaus .reflection {
+            border-left-width: 4px;
+            font-style: normal;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        body.theme-wabisabi .reflection {
+            border-left: none;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        body.theme-brutalist .reflection {
+            border-left-width: 4px;
+            border-left-color: #000;
+            font-style: normal;
+            font-family: monospace;
+            text-transform: uppercase;
         }
 
         /* Mobile responsive */
@@ -353,6 +658,10 @@
             button.secondary {
                 margin-right: 0;
             }
+
+            .theme-options {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 480px) {
@@ -374,6 +683,12 @@
 
         .error.show {
             display: block;
+        }
+
+        body.theme-brutalist .error {
+            color: #ff0000;
+            font-family: monospace;
+            text-transform: uppercase;
         }
     </style>
 </head>
@@ -409,6 +724,58 @@
             <h1>Your life in weeks</h1>
             <p>Each square represents one week of your life.</p>
 
+            <!-- Theme Selector -->
+            <div class="theme-selector">
+                <div class="theme-selector-title">Choose a style</div>
+                <div class="theme-options">
+                    <div class="theme-option active" data-theme="apple">
+                        <div class="theme-preview">
+                            <div class="theme-preview-box" style="background: #0071e3;"></div>
+                            <div class="theme-preview-box" style="background: #0071e3; opacity: 0.6;"></div>
+                            <div class="theme-preview-box" style="background: #f5f5f7; border: 1px solid #d2d2d7;"></div>
+                        </div>
+                        <div class="theme-option-name">Apple</div>
+                        <div class="theme-option-desc">Clean & elegant</div>
+                    </div>
+                    <div class="theme-option" data-theme="alessi">
+                        <div class="theme-preview">
+                            <div class="theme-preview-box" style="background: #ff6b6b;"></div>
+                            <div class="theme-preview-box" style="background: #4ecdc4;"></div>
+                            <div class="theme-preview-box" style="background: #ffe66d;"></div>
+                        </div>
+                        <div class="theme-option-name">Alessi</div>
+                        <div class="theme-option-desc">Playful & bright</div>
+                    </div>
+                    <div class="theme-option" data-theme="bauhaus">
+                        <div class="theme-preview">
+                            <div class="theme-preview-box" style="background: #000;"></div>
+                            <div class="theme-preview-box" style="background: #e63946;"></div>
+                            <div class="theme-preview-box" style="background: #fff; border: 2px solid #000;"></div>
+                        </div>
+                        <div class="theme-option-name">Bauhaus</div>
+                        <div class="theme-option-desc">Bold & geometric</div>
+                    </div>
+                    <div class="theme-option" data-theme="wabisabi">
+                        <div class="theme-preview">
+                            <div class="theme-preview-box" style="background: #2d2d2d;"></div>
+                            <div class="theme-preview-box" style="background: #8b7355;"></div>
+                            <div class="theme-preview-box" style="background: #f5f3f0;"></div>
+                        </div>
+                        <div class="theme-option-name">Wabi-sabi</div>
+                        <div class="theme-option-desc">Calm & zen</div>
+                    </div>
+                    <div class="theme-option" data-theme="brutalist">
+                        <div class="theme-preview">
+                            <div class="theme-preview-box" style="background: #000;"></div>
+                            <div class="theme-preview-box" style="background: #ff0000;"></div>
+                            <div class="theme-preview-box" style="background: #ccc; border: 2px solid #000;"></div>
+                        </div>
+                        <div class="theme-option-name">Brutalist</div>
+                        <div class="theme-option-desc">Raw & honest</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="stats">
                 <div class="stat-item">
                     <div class="stat-value" id="weeksLived">0</div>
@@ -441,7 +808,7 @@
                 <div class="weeks-grid" id="weeksGrid"></div>
             </div>
 
-            <div class="reflection">
+            <div class="reflection" id="reflection">
                 "Time is the most valuable thing a person can spend."
             </div>
 
@@ -458,6 +825,15 @@
         const WEEKS_PER_YEAR = 52;
         const TOTAL_WEEKS = LIFE_EXPECTANCY_YEARS * WEEKS_PER_YEAR;
 
+        // Theme quotes
+        const THEME_QUOTES = {
+            apple: '"Time is the most valuable thing a person can spend."',
+            alessi: '"Life is a beautiful collection of moments."',
+            bauhaus: '"FORM FOLLOWS FUNCTION. TIME FOLLOWS PURPOSE."',
+            wabisabi: '"Every moment holds beauty in its impermanence."',
+            brutalist: '"TIME.FINITE.UNFORGIVING.USE.IT."'
+        };
+
         // Elements
         const step1 = document.getElementById('step1');
         const step2 = document.getElementById('step2');
@@ -468,17 +844,57 @@
         const saveBtn = document.getElementById('saveBtn');
         const errorEl = document.getElementById('error');
         const weeksGrid = document.getElementById('weeksGrid');
+        const reflectionEl = document.getElementById('reflection');
+        const themeOptions = document.querySelectorAll('.theme-option');
 
         // State
         let currentWeeksLived = 0;
         let isApproximate = false;
         let currentAge = 0;
+        let currentTheme = 'apple';
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('lifeWeeksTheme') || 'apple';
+        setTheme(savedTheme);
 
         // Set max date to today
         const today = new Date().toISOString().split('T')[0];
         birthdateInput.setAttribute('max', today);
 
-        // Feature 3: Cross-disable inputs
+        // Theme switching
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const theme = option.dataset.theme;
+                setTheme(theme);
+                localStorage.setItem('lifeWeeksTheme', theme);
+            });
+        });
+
+        function setTheme(theme) {
+            currentTheme = theme;
+
+            // Remove all theme classes
+            document.body.className = '';
+
+            // Add new theme class
+            if (theme !== 'apple') {
+                document.body.classList.add(`theme-${theme}`);
+            }
+
+            // Update active theme option
+            themeOptions.forEach(opt => {
+                if (opt.dataset.theme === theme) {
+                    opt.classList.add('active');
+                } else {
+                    opt.classList.remove('active');
+                }
+            });
+
+            // Update reflection quote
+            reflectionEl.textContent = THEME_QUOTES[theme];
+        }
+
+        // Cross-disable inputs
         birthdateInput.addEventListener('input', () => {
             if (birthdateInput.value) {
                 ageInput.disabled = true;
@@ -555,7 +971,7 @@
                     week.classList.add('lived');
                 }
 
-                // Feature 1: Highlight current week
+                // Highlight current week
                 if (i === weeksLived - 1 && weeksLived > 0) {
                     week.classList.add('current-week');
                 }
@@ -626,14 +1042,65 @@
             step2.classList.add('active');
         }
 
-        // Feature 2: Save as image
+        // Get theme colors for canvas
+        function getThemeColors(theme) {
+            const themes = {
+                apple: {
+                    bg: '#ffffff',
+                    text: '#1d1d1f',
+                    textLight: '#86868b',
+                    lived: '#0071e3',
+                    remaining: '#f5f5f7',
+                    remainingBorder: '#d2d2d7',
+                    current: '#006edb'
+                },
+                alessi: {
+                    bg: '#ffffff',
+                    text: '#2d2d2d',
+                    textLight: '#7d7d7d',
+                    lived: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf'],
+                    remaining: '#fff8e7',
+                    remainingBorder: '#ffe6b3',
+                    current: '#ff006e'
+                },
+                bauhaus: {
+                    bg: '#ffffff',
+                    text: '#000000',
+                    textLight: '#555555',
+                    lived: '#000000',
+                    remaining: '#ffffff',
+                    remainingBorder: '#000000',
+                    current: '#e63946'
+                },
+                wabisabi: {
+                    bg: '#f9f7f4',
+                    text: '#3d3d3d',
+                    textLight: '#9d9d9d',
+                    lived: '#2d2d2d',
+                    remaining: '#f5f3f0',
+                    remainingBorder: '#e5e0da',
+                    current: '#8b7355'
+                },
+                brutalist: {
+                    bg: '#e8e8e8',
+                    text: '#000000',
+                    textLight: '#666666',
+                    lived: '#000000',
+                    remaining: '#cccccc',
+                    remainingBorder: '#000000',
+                    current: '#ff0000'
+                }
+            };
+            return themes[theme];
+        }
+
+        // Save as image
         async function saveAsImage() {
             const originalText = saveBtn.textContent;
             saveBtn.textContent = 'Saving...';
             saveBtn.disabled = true;
 
             try {
-                // Create canvas
                 const canvas = document.createElement('canvas');
                 const width = 1200;
                 const height = 1600;
@@ -641,19 +1108,20 @@
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
 
-                // White background
-                ctx.fillStyle = '#ffffff';
+                const colors = getThemeColors(currentTheme);
+
+                // Background
+                ctx.fillStyle = colors.bg;
                 ctx.fillRect(0, 0, width, height);
 
                 // Title
-                ctx.fillStyle = '#2a2a2a';
+                ctx.fillStyle = colors.text;
                 ctx.font = '400 32px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
                 ctx.fillText('Life in weeks', 60, 100);
 
                 // Draw grid
                 const gridSize = 1000;
                 const cols = 52;
-                const rows = 90;
                 const cellSize = gridSize / cols;
                 const startX = (width - gridSize) / 2;
                 const startY = 200;
@@ -668,19 +1136,24 @@
 
                     // Draw week square
                     if (i < currentWeeksLived) {
-                        ctx.fillStyle = '#2a2a2a';
+                        // Alessi theme: use rotating colors
+                        if (currentTheme === 'alessi') {
+                            ctx.fillStyle = colors.lived[i % colors.lived.length];
+                        } else {
+                            ctx.fillStyle = colors.lived;
+                        }
                         ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
                     } else {
-                        ctx.fillStyle = '#f0f0f0';
+                        ctx.fillStyle = colors.remaining;
                         ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
-                        ctx.strokeStyle = '#e0e0e0';
+                        ctx.strokeStyle = colors.remainingBorder;
                         ctx.lineWidth = 1;
                         ctx.strokeRect(x, y, cellSize - 1, cellSize - 1);
                     }
 
                     // Highlight current week
                     if (i === currentWeeksLived - 1 && currentWeeksLived > 0) {
-                        ctx.strokeStyle = '#4a4a4a';
+                        ctx.strokeStyle = colors.current;
                         ctx.lineWidth = 2;
                         ctx.strokeRect(x - 2, y - 2, cellSize + 2, cellSize + 2);
                     }
@@ -690,6 +1163,7 @@
                 const statsY = startY + (Math.ceil(totalWeeksToShow / cols) * cellSize) + 80;
 
                 ctx.font = '300 28px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+                ctx.fillStyle = colors.text;
                 const prefix = isApproximate ? '~' : '';
 
                 ctx.fillText(`${prefix}${currentWeeksLived.toLocaleString()} weeks lived`, 60, statsY);
@@ -697,17 +1171,17 @@
                 const weeksRemaining = Math.max(0, TOTAL_WEEKS - currentWeeksLived);
                 ctx.fillText(`${prefix}${weeksRemaining.toLocaleString()} weeks remaining`, 60, statsY + 50);
 
-                // Age in corner
+                // Age and theme in corner
                 ctx.font = '400 18px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
-                ctx.fillStyle = '#6a6a6a';
-                ctx.fillText(`${currentAge} years old`, 60, height - 60);
+                ctx.fillStyle = colors.textLight;
+                ctx.fillText(`${currentAge} years old · ${currentTheme} style`, 60, height - 60);
 
                 // Download
                 canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `life-in-weeks-${currentAge}years.png`;
+                    a.download = `life-in-weeks-${currentAge}years-${currentTheme}.png`;
                     a.click();
                     URL.revokeObjectURL(url);
 
