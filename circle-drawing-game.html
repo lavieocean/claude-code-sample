@@ -344,6 +344,162 @@
             width: 12px;
             height: 12px;
         }
+
+        /* 右侧快照面板 */
+        #snapshotsPanel {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 180px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 6;
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #snapshotsPanel.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #snapshotsPanel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #snapshotsPanel::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 2px;
+        }
+
+        .snapshots-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .snapshot-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: snapshotSlideIn 0.4s ease-out;
+        }
+
+        @keyframes snapshotSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .snapshot-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .snapshot-canvas {
+            width: 100%;
+            height: 120px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: block;
+            background: #f8f9fa;
+        }
+
+        .snapshot-score {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .snapshot-score.high {
+            color: #2ecc71;
+        }
+
+        .snapshot-score.medium {
+            color: #3498db;
+        }
+
+        .snapshot-score.low {
+            color: #f39c12;
+        }
+
+        .snapshot-bonus {
+            font-size: 10px;
+            color: #95a5a6;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .snapshot-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(52, 73, 94, 0.8);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            #snapshotsPanel {
+                right: auto;
+                left: 50%;
+                top: auto;
+                bottom: 100px;
+                transform: translateX(-50%);
+                width: calc(100% - 40px);
+                max-width: 400px;
+                max-height: 150px;
+                padding: 12px;
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .snapshots-title {
+                display: none;
+            }
+
+            .snapshot-item {
+                min-width: 140px;
+                margin-right: 10px;
+                margin-bottom: 0;
+            }
+
+            .snapshot-canvas {
+                height: 100px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -371,6 +527,13 @@
             <div id="feedback"></div>
             <div id="feedbackSub"></div>
             <div id="instructions">按住鼠标或触摸屏幕画一个圆圈</div>
+
+            <!-- 右侧快照面板 -->
+            <div id="snapshotsPanel">
+                <div class="snapshots-title">我的作品</div>
+                <div id="snapshotsList"></div>
+            </div>
+
             <div id="statsPanel">
                 <div class="stats-title">你的圆圈统计</div>
                 <div class="stats-row">
@@ -402,6 +565,7 @@
             canvas: null,
             ctx: null,
             history: [],  // 存储最近的基础分
+            snapshots: [], // 存储最近5个快照
             startTime: 0,
             endTime: 0
         };
@@ -464,7 +628,10 @@
                 game.bestScore = data.bestScore || 0;
                 game.attempts = data.attempts || 0;
                 game.history = data.history || [];
+                game.snapshots = data.snapshots || [];
             }
+            // 加载后更新快照显示
+            updateSnapshotsPanel();
         }
 
         function saveGameData() {
@@ -472,7 +639,8 @@
                 totalScore: game.totalScore,
                 bestScore: game.bestScore,
                 attempts: game.attempts,
-                history: game.history
+                history: game.history,
+                snapshots: game.snapshots
             };
             sessionStorage.setItem('circleGameData', JSON.stringify(data));
         }
@@ -555,6 +723,9 @@
 
             // 绘制理想圆圈
             drawIdealCircle(game.points);
+
+            // 保存快照
+            setTimeout(() => saveSnapshot(result), 500);
 
             // 在第5次或第8次显示统计面板
             if (game.attempts === 5 || game.attempts === 8) {
@@ -982,6 +1153,107 @@
         function clearCanvas() {
             game.ctx.clearRect(0, 0, game.canvas.width, game.canvas.height);
             document.getElementById('instructions').classList.remove('hide');
+        }
+
+        // 保存快照
+        function saveSnapshot(result) {
+            try {
+                // 创建canvas快照（data URL）
+                const snapshotData = game.canvas.toDataURL('image/png');
+
+                // 创建快照对象
+                const snapshot = {
+                    id: Date.now(),
+                    number: game.attempts,
+                    imageData: snapshotData,
+                    baseScore: result.baseScore,
+                    finalScore: result.finalScore,
+                    bonuses: result.bonuses.slice(0, 2).map(b => b.text), // 只保存前2个bonus
+                    timestamp: new Date().toISOString()
+                };
+
+                // 添加到数组开头（最新的在前面）
+                game.snapshots.unshift(snapshot);
+
+                // 只保留最近5个
+                if (game.snapshots.length > 5) {
+                    game.snapshots = game.snapshots.slice(0, 5);
+                }
+
+                // 保存数据
+                saveGameData();
+
+                // 更新显示
+                updateSnapshotsPanel();
+            } catch (error) {
+                console.error('保存快照失败:', error);
+            }
+        }
+
+        // 更新快照面板
+        function updateSnapshotsPanel() {
+            const snapshotsList = document.getElementById('snapshotsList');
+            const panel = document.getElementById('snapshotsPanel');
+
+            // 清空现有内容
+            snapshotsList.innerHTML = '';
+
+            if (game.snapshots.length === 0) {
+                panel.classList.remove('show');
+                return;
+            }
+
+            // 显示面板
+            panel.classList.add('show');
+
+            // 渲染每个快照
+            game.snapshots.forEach((snapshot, index) => {
+                const item = document.createElement('div');
+                item.className = 'snapshot-item';
+                item.style.position = 'relative';
+
+                // 创建缩略canvas
+                const miniCanvas = document.createElement('canvas');
+                miniCanvas.className = 'snapshot-canvas';
+                miniCanvas.width = 300;
+                miniCanvas.height = 300;
+
+                // 绘制快照图像
+                const img = new Image();
+                img.onload = function() {
+                    const miniCtx = miniCanvas.getContext('2d');
+                    miniCtx.drawImage(img, 0, 0, 300, 300);
+                };
+                img.src = snapshot.imageData;
+
+                // 序号标记
+                const numberBadge = document.createElement('div');
+                numberBadge.className = 'snapshot-number';
+                numberBadge.textContent = `#${snapshot.number}`;
+
+                // 分数显示
+                const scoreEl = document.createElement('div');
+                scoreEl.className = 'snapshot-score';
+                const scoreClass = snapshot.baseScore >= 80 ? 'high' : snapshot.baseScore >= 60 ? 'medium' : 'low';
+                scoreEl.classList.add(scoreClass);
+                scoreEl.textContent = `${snapshot.baseScore.toFixed(0)}分`;
+
+                // Bonus显示
+                const bonusEl = document.createElement('div');
+                bonusEl.className = 'snapshot-bonus';
+                if (snapshot.bonuses && snapshot.bonuses.length > 0) {
+                    bonusEl.textContent = snapshot.bonuses.join(' · ');
+                } else {
+                    bonusEl.textContent = '-';
+                }
+
+                item.appendChild(numberBadge);
+                item.appendChild(miniCanvas);
+                item.appendChild(scoreEl);
+                item.appendChild(bonusEl);
+
+                snapshotsList.appendChild(item);
+            });
         }
 
         // 启动
