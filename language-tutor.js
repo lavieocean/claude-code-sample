@@ -1,9 +1,143 @@
 // 语言学习导师 - 核心逻辑
+
+// 演示模式的预制对话数据
+const DEMO_RESPONSES = {
+    'ja': {
+        'greeting': {
+            patterns: ['你好', 'こんにちは', 'hello', 'hi', '您好', 'おはよう'],
+            responses: [
+                'こんにちは！日本語の勉強を始めましょう！(Konnichiwa! 你好！让我们开始学习日语吧！)\n\n今日は何について話したいですか？(今天你想聊些什么？)',
+                'おはようございます！(早上好！)\n\n日本語を勉強していますね。すばらしい！(你在学习日语，太棒了！)\n\n何か質問がありますか？(有什么问题吗？)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '很好的开始！',
+                text: '使用基本问候语是学习新语言的第一步。继续保持！'
+            }
+        },
+        'food': {
+            patterns: ['食べ物', '食物', 'たべもの', '好き', 'すき', 'food', '喜欢', 'ラーメン', 'ramen'],
+            responses: [
+                '日本の食べ物が好きですか？(你喜欢日本食物吗？)\n\n例えば：\n- ラーメン (ramen) - 拉面\n- 寿司 (sushi) - 寿司\n- 天ぷら (tempura) - 天妇罗\n\nあなたの好きな食べ物は何ですか？',
+                '美味しい日本料理がたくさんありますね！(有很多美味的日本料理！)\n\n「好き」(suki) 是"喜欢"的意思。\n\n例文：私はラーメンが好きです。(我喜欢拉面。)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '词汇扩展',
+                text: '学习关于食物的词汇很实用！这是日常对话的重要部分。'
+            }
+        },
+        'default': {
+            responses: [
+                'とても良い質問ですね！(非常好的问题！)\n\n日本語では、丁寧な表現が大切です。(在日语中，礼貌的表达很重要。)\n\n例えば「です・ます」形を使います。',
+                'なるほど！(原来如此！)\n\n日本語の勉強、頑張ってください！(请努力学习日语！)\n\n何か他に知りたいことはありますか？',
+                '良いですね！(很好！)\n\n日本語には3種類の文字があります：\n- ひらがな (平假名)\n- カタカナ (片假名)\n- 漢字 (汉字)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '继续练习',
+                text: '每次对话都是进步的机会。尝试使用更多日语词汇！'
+            }
+        }
+    },
+    'es': {
+        'greeting': {
+            patterns: ['你好', 'hola', 'hello', 'hi', '您好', 'buenos'],
+            responses: [
+                '¡Hola! ¿Cómo estás? (你好！你好吗？)\n\n我很高兴帮助你学习西班牙语！\n\n¿Qué quieres aprender hoy? (今天你想学什么？)',
+                '¡Buenos días! (早上好！)\n\n西班牙语是一门美丽的语言。让我们一起学习吧！\n\n¿Hablas un poco de español? (你会说一点西班牙语吗？)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '¡Muy bien!',
+                text: '问候语是开始对话的好方式。注意西班牙语中的倒置问号 ¿ 和感叹号 ¡'
+            }
+        },
+        'learning': {
+            patterns: ['学习', 'aprender', 'learn', 'estudio', 'quiero'],
+            responses: [
+                'Quiero ayudarte a aprender español. (我想帮你学习西班牙语。)\n\n基本短语：\n- Por favor (请)\n- Gracias (谢谢)\n- De nada (不客气)\n\n¿Entiendes? (明白了吗？)',
+                '¡Excelente! (太棒了！)\n\n学习一门新语言需要时间和练习。\n\n动词 "aprender" = 学习\n- Yo aprendo (我学习)\n- Tú aprendes (你学习)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '动词变位',
+                text: '西班牙语动词会根据人称变化。这是语法的重要部分！'
+            }
+        },
+        'default': {
+            responses: [
+                '¡Muy interesante! (非常有趣！)\n\n在西班牙语中，所有名词都有性别：\n- Masculino (阳性): el libro\n- Femenino (阴性): la casa',
+                '¡Perfecto! (完美！)\n\n继续练习，你会越来越流利。\n\n¿Tienes alguna pregunta? (你有什么问题吗？)',
+                '¡Bien hecho! (做得好！)\n\n西班牙语的发音规则：\n- a, e, i, o, u - 元音发音清晰\n- ñ - 发 "尼" 的音'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '语法注意',
+                text: '注意名词的性别和形容词的一致性。这是西班牙语的特点！'
+            }
+        }
+    },
+    'fr': {
+        'greeting': {
+            patterns: ['你好', 'bonjour', 'hello', 'hi', 'salut'],
+            responses: [
+                'Bonjour! Comment allez-vous? (你好！您好吗？)\n\n欢迎来到法语学习之旅！\n\nQue voulez-vous apprendre? (您想学什么？)',
+                'Salut! (嗨！)\n\n法语是一门优雅的语言。\n\nJe suis ravi de vous aider. (我很高兴帮助您。)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: 'Très bien!',
+                text: '法语有正式和非正式的问候方式。Bonjour 更正式，Salut 更随意。'
+            }
+        },
+        'default': {
+            responses: [
+                'C\'est intéressant! (这很有趣！)\n\n法语有很多美丽的表达方式。继续学习！',
+                'Magnifique! (太棒了！)\n\n法语发音的重点：\n- 注意鼻音：an, en, in, on\n- 不发音的字母很常见',
+                'Excellent! (太好了！)\n\n法语的礼貌用语：\n- S\'il vous plaît (请)\n- Merci (谢谢)\n- Je vous en prie (不客气)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '发音技巧',
+                text: '法语的发音需要练习。注意连音和不发音的字母！'
+            }
+        }
+    },
+    'de': {
+        'greeting': {
+            patterns: ['你好', 'hallo', 'guten', 'hello', 'hi'],
+            responses: [
+                'Guten Tag! Wie geht es Ihnen? (您好！您好吗？)\n\n让我们开始学习德语！\n\nWas möchten Sie lernen? (您想学什么？)',
+                'Hallo! (你好！)\n\n德语是一门精确的语言。\n\nIch freue mich, Ihnen zu helfen. (我很高兴帮助您。)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: 'Sehr gut!',
+                text: '德语有正式和非正式的称呼方式。Sie 是正式的"您"，du 是非正式的"你"。'
+            }
+        },
+        'default': {
+            responses: [
+                'Das ist interessant! (这很有趣！)\n\n德语的特点：\n- 名词首字母大写\n- 三种性别：der, die, das',
+                'Wunderbar! (太棒了！)\n\n德语的复合词很有趣：\n- Haus (房子) + Tür (门) = Haustür (家门)',
+                'Ausgezeichnet! (太好了！)\n\n德语的格系统：\n- Nominativ (主格)\n- Akkusativ (宾格)\n- Dativ (与格)\n- Genitiv (属格)'
+            ],
+            feedback: {
+                type: 'positive',
+                title: '语法结构',
+                text: '德语的语法比较复杂，但很有逻辑性。慢慢学习，不要着急！'
+            }
+        }
+    }
+};
+
 class LanguageTutor {
     constructor() {
         // 状态管理
         this.apiKey = localStorage.getItem('gemini_api_key') || '';
-        this.currentLanguage = 'es';
+        this.demoMode = localStorage.getItem('demo_mode') === 'true' || !this.apiKey;
+        this.currentLanguage = this.demoMode ? 'ja' : 'es'; // 演示模式默认日语
         this.chatMode = 'casual';
         this.proficiencyLevel = 'beginner';
         this.conversationHistory = [];
@@ -39,12 +173,18 @@ class LanguageTutor {
     init() {
         this.setupEventListeners();
         this.checkApiKey();
+        this.updateDemoModeUI();
         this.updateProficiencyDisplay();
         this.renderGoals();
         this.updateStatistics();
         this.setupProgressChart();
         this.loadSessionLog();
         this.startSessionTimer();
+
+        // 显示欢迎消息
+        if (this.demoMode) {
+            this.addBotMessage('👋 欢迎使用演示模式！你可以体验所有功能，无需 API Key。\n\n💡 提示：尝试用中文输入"你好"或"我想学习食物词汇"，看看导师如何用日语回复！');
+        }
     }
 
     setupEventListeners() {
@@ -73,6 +213,12 @@ class LanguageTutor {
         // API Key 保存
         document.getElementById('save-api-key').addEventListener('click', () => this.saveApiKey());
 
+        // 演示模式切换
+        const demoBtn = document.getElementById('demo-mode-btn');
+        if (demoBtn) {
+            demoBtn.addEventListener('click', () => this.toggleDemoMode());
+        }
+
         // 添加学习目标
         document.getElementById('add-goal-btn').addEventListener('click', () => this.addGoal());
         document.getElementById('new-goal-input').addEventListener('keypress', (e) => {
@@ -87,7 +233,8 @@ class LanguageTutor {
 
     checkApiKey() {
         const notice = document.getElementById('api-key-notice');
-        if (this.apiKey) {
+        // 如果有 API key 或在演示模式下，隐藏提示
+        if (this.apiKey || this.demoMode) {
             notice.classList.add('hidden');
         } else {
             notice.classList.remove('hidden');
@@ -99,10 +246,33 @@ class LanguageTutor {
         const key = input.value.trim();
         if (key) {
             this.apiKey = key;
+            this.demoMode = false;
             localStorage.setItem('gemini_api_key', key);
+            localStorage.setItem('demo_mode', 'false');
             this.checkApiKey();
-            this.addBotMessage('API Key 已保存！现在可以开始对话了。');
+            this.updateDemoModeUI();
+            this.addBotMessage('API Key 已保存！现在可以使用真实 AI 对话了。');
             input.value = '';
+        }
+    }
+
+    toggleDemoMode() {
+        this.demoMode = !this.demoMode;
+        localStorage.setItem('demo_mode', this.demoMode.toString());
+        this.updateDemoModeUI();
+        this.checkApiKey();
+        const mode = this.demoMode ? '演示模式' : 'AI 模式';
+        const message = this.demoMode ?
+            '🎭 已切换到演示模式！现在你可以体验所有功能。\n\n💡 提示：尝试输入"你好"、"我想学习"或"食物"等词汇。' :
+            '🤖 已切换到 AI 模式。需要设置 API Key 才能使用真实的 AI 对话。';
+        this.addBotMessage(message);
+    }
+
+    updateDemoModeUI() {
+        const demoBtn = document.getElementById('demo-mode-btn');
+        if (demoBtn) {
+            demoBtn.textContent = this.demoMode ? '🤖 切换到 AI 模式' : '🎭 切换到演示模式';
+            demoBtn.className = this.demoMode ? 'demo-mode-btn active' : 'demo-mode-btn';
         }
     }
 
@@ -111,8 +281,10 @@ class LanguageTutor {
         const message = input.value.trim();
 
         if (!message) return;
-        if (!this.apiKey) {
-            alert('请先设置 Gemini API Key');
+
+        // 演示模式下不需要 API Key
+        if (!this.demoMode && !this.apiKey) {
+            alert('请先设置 Gemini API Key，或点击"演示模式"按钮体验预设对话');
             return;
         }
 
@@ -127,20 +299,38 @@ class LanguageTutor {
         // 分析用户消息
         this.analyzeUserMessage(message);
 
-        // 发送到 Gemini API
+        // 发送到 Gemini API 或使用演示模式
         const sendBtn = document.getElementById('send-btn');
         sendBtn.disabled = true;
         sendBtn.innerHTML = '<span class="loading"></span>';
 
         try {
-            const response = await this.callGeminiAPI(message);
+            let response;
+            let feedbackData;
+
+            if (this.demoMode) {
+                // 演示模式：使用预制响应
+                const demoData = this.getDemoResponse(message);
+                response = demoData.response;
+                feedbackData = demoData.feedback;
+                // 模拟延迟，更真实
+                await new Promise(resolve => setTimeout(resolve, 800));
+            } else {
+                // 真实 API 模式
+                response = await this.callGeminiAPI(message);
+            }
+
             this.addBotMessage(response);
 
             // 更新熟练程度
             this.updateProficiency();
 
             // 生成反馈
-            await this.generateFeedback(message, response);
+            if (feedbackData) {
+                this.addFeedback(feedbackData.type, feedbackData.title, feedbackData.text);
+            } else {
+                await this.generateFeedback(message, response);
+            }
 
             // 更新学习目标
             this.updateLearningGoals();
@@ -152,6 +342,50 @@ class LanguageTutor {
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<span>发送</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
         }
+    }
+
+    getDemoResponse(userMessage) {
+        const langData = DEMO_RESPONSES[this.currentLanguage];
+
+        // 如果没有该语言的数据，使用默认响应
+        if (!langData) {
+            return {
+                response: '抱歉，该语言的演示数据还在开发中。请尝试日语、西班牙语、法语或德语。',
+                feedback: {
+                    type: 'warning',
+                    title: '演示模式',
+                    text: '当前语言的演示数据有限，建议切换到其他语言或使用真实 API。'
+                }
+            };
+        }
+
+        const messageLower = userMessage.toLowerCase();
+
+        // 检查各个类别
+        for (const [category, data] of Object.entries(langData)) {
+            if (category === 'default') continue;
+
+            // 检查是否匹配该类别的关键词
+            const matched = data.patterns.some(pattern =>
+                messageLower.includes(pattern.toLowerCase())
+            );
+
+            if (matched) {
+                const randomIndex = Math.floor(Math.random() * data.responses.length);
+                return {
+                    response: data.responses[randomIndex],
+                    feedback: data.feedback
+                };
+            }
+        }
+
+        // 如果没有匹配，使用默认响应
+        const defaultData = langData.default;
+        const randomIndex = Math.floor(Math.random() * defaultData.responses.length);
+        return {
+            response: defaultData.responses[randomIndex],
+            feedback: defaultData.feedback
+        };
     }
 
     async callGeminiAPI(userMessage) {

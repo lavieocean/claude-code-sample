@@ -283,6 +283,29 @@ body {
     background: #45b369;
 }
 
+.demo-mode-btn {
+    padding: 0.5rem 1rem;
+    background: #9b59b6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.demo-mode-btn:hover {
+    background: #8e44ad;
+}
+
+.demo-mode-btn.active {
+    background: #e67e22;
+}
+
+.demo-mode-btn.active:hover {
+    background: #d35400;
+}
+
 .api-key-notice.hidden {
     display: none;
 }
