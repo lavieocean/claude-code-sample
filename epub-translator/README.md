@@ -1,12 +1,14 @@
 # 📚 EPUB Translator
 
-一个基于Web的AI驱动的EPUB电子书翻译工具，支持OpenAI翻译引擎，保持原书完整排版结构。
+一个基于Web的AI驱动的EPUB电子书翻译工具，支持 **OpenAI** 和 **Google Gemini** 翻译引擎，保持原书完整排版结构。
 
 ## ✨ 功能特点
 
 ### 核心功能
 - 📖 **完整EPUB支持** - 兼容EPUB 2.0和3.0格式
-- 🤖 **AI智能翻译** - 支持OpenAI GPT-4o / GPT-4o-mini
+- 🤖 **多引擎AI翻译**
+  - **Google Gemini** - 每天1500次免费翻译（推荐！）
+  - **OpenAI GPT-4o** / GPT-4o-mini
 - 🎨 **保留排版** - 完整保留原书结构、样式、图片、目录
 - 👁️ **三种阅读模式**
   - 原文模式
@@ -25,7 +27,18 @@
 
 ### 1. 准备API Key
 
-在使用前，您需要准备OpenAI API Key：
+#### 方案A：Google Gemini（推荐 - 免费）
+
+**完全免费！每天1500次翻译请求！**
+
+1. 访问 [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. 使用Google账号登录
+3. 点击 "Create API Key" 创建API Key
+4. 复制API Key（格式：`AIza...`）
+
+💡 **详细教程：** 查看 [GEMINI_GUIDE.md](./GEMINI_GUIDE.md)
+
+#### 方案B：OpenAI（付费）
 
 1. 访问 [OpenAI Platform](https://platform.openai.com/)
 2. 注册/登录账号
@@ -33,7 +46,7 @@
 4. 点击 "Create new secret key" 创建新的API Key
 5. 复制并保存您的API Key（格式：`sk-...`）
 
-**注意：** API Key会在使用时产生费用，请妥善保管。
+**注意：** OpenAI API需要付费使用。
 
 ### 2. 使用工具
 

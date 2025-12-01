@@ -15,6 +15,8 @@ const AppState = {
         apiProvider: 'openai',
         openaiApiKey: '',
         openaiModel: 'gpt-4o-mini',
+        geminiApiKey: '',
+        geminiModel: 'gemini-1.5-flash',
         sourceLang: 'en',
         targetLang: 'zh-CN',
         translationStyle: 'fluent'
@@ -70,13 +72,19 @@ const Elements = {
 
     // 设置表单
     apiProvider: null,
+    openaiConfig: null,
     openaiApiKey: null,
     openaiModel: null,
+    testOpenaiBtn: null,
+    openaiTestResult: null,
+    geminiConfig: null,
+    geminiApiKey: null,
+    geminiModel: null,
+    testGeminiBtn: null,
+    geminiTestResult: null,
     sourceLang: null,
     targetLang: null,
     translationStyle: null,
-    testApiBtn: null,
-    apiTestResult: null,
 
     // 加载提示
     loadingOverlay: null,
@@ -131,13 +139,22 @@ function initializeElements() {
     Elements.cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
 
     Elements.apiProvider = document.getElementById('apiProvider');
+
+    Elements.openaiConfig = document.getElementById('openaiConfig');
     Elements.openaiApiKey = document.getElementById('openaiApiKey');
     Elements.openaiModel = document.getElementById('openaiModel');
+    Elements.testOpenaiBtn = document.getElementById('testOpenaiBtn');
+    Elements.openaiTestResult = document.getElementById('openaiTestResult');
+
+    Elements.geminiConfig = document.getElementById('geminiConfig');
+    Elements.geminiApiKey = document.getElementById('geminiApiKey');
+    Elements.geminiModel = document.getElementById('geminiModel');
+    Elements.testGeminiBtn = document.getElementById('testGeminiBtn');
+    Elements.geminiTestResult = document.getElementById('geminiTestResult');
+
     Elements.sourceLang = document.getElementById('sourceLang');
     Elements.targetLang = document.getElementById('targetLang');
     Elements.translationStyle = document.getElementById('translationStyle');
-    Elements.testApiBtn = document.getElementById('testApiBtn');
-    Elements.apiTestResult = document.getElementById('apiTestResult');
 
     // 加载
     Elements.loadingOverlay = document.getElementById('loadingOverlay');
@@ -164,7 +181,11 @@ function initializeEventListeners() {
     Elements.closeSettings.addEventListener('click', closeSettings);
     Elements.saveSettingsBtn.addEventListener('click', saveSettings);
     Elements.cancelSettingsBtn.addEventListener('click', closeSettings);
-    Elements.testApiBtn.addEventListener('click', testApiConnection);
+    Elements.testOpenaiBtn.addEventListener('click', testOpenaiConnection);
+    Elements.testGeminiBtn.addEventListener('click', testGeminiConnection);
+
+    // API Provider切换
+    Elements.apiProvider.addEventListener('change', handleProviderChange);
 
     // 视图模式切换
     Elements.viewModeRadios.forEach(radio => {
@@ -201,9 +222,20 @@ function updateSettingsForm() {
     Elements.apiProvider.value = AppState.config.apiProvider;
     Elements.openaiApiKey.value = AppState.config.openaiApiKey;
     Elements.openaiModel.value = AppState.config.openaiModel;
+    Elements.geminiApiKey.value = AppState.config.geminiApiKey;
+    Elements.geminiModel.value = AppState.config.geminiModel;
     Elements.sourceLang.value = AppState.config.sourceLang;
     Elements.targetLang.value = AppState.config.targetLang;
     Elements.translationStyle.value = AppState.config.translationStyle;
+
+    // 显示/隐藏对应的配置区域
+    handleProviderChange();
+}
+
+function handleProviderChange() {
+    const provider = Elements.apiProvider.value;
+    Elements.openaiConfig.style.display = provider === 'openai' ? 'block' : 'none';
+    Elements.geminiConfig.style.display = provider === 'gemini' ? 'block' : 'none';
 }
 
 function openSettings() {
@@ -219,6 +251,8 @@ function saveSettings() {
     AppState.config.apiProvider = Elements.apiProvider.value;
     AppState.config.openaiApiKey = Elements.openaiApiKey.value;
     AppState.config.openaiModel = Elements.openaiModel.value;
+    AppState.config.geminiApiKey = Elements.geminiApiKey.value;
+    AppState.config.geminiModel = Elements.geminiModel.value;
     AppState.config.sourceLang = Elements.sourceLang.value;
     AppState.config.targetLang = Elements.targetLang.value;
     AppState.config.translationStyle = Elements.translationStyle.value;
@@ -228,17 +262,17 @@ function saveSettings() {
     showToast('✅ 设置已保存');
 }
 
-async function testApiConnection() {
+async function testOpenaiConnection() {
     const apiKey = Elements.openaiApiKey.value.trim();
     if (!apiKey) {
-        Elements.apiTestResult.textContent = '❌ 请输入API Key';
-        Elements.apiTestResult.style.color = 'var(--error-color)';
+        Elements.openaiTestResult.textContent = '❌ 请输入API Key';
+        Elements.openaiTestResult.style.color = 'var(--error-color)';
         return;
     }
 
-    Elements.testApiBtn.disabled = true;
-    Elements.apiTestResult.textContent = '⏳ 测试中...';
-    Elements.apiTestResult.style.color = 'var(--text-secondary)';
+    Elements.testOpenaiBtn.disabled = true;
+    Elements.openaiTestResult.textContent = '⏳ 测试中...';
+    Elements.openaiTestResult.style.color = 'var(--text-secondary)';
 
     try {
         const response = await fetch('https://api.openai.com/v1/models', {
@@ -248,17 +282,48 @@ async function testApiConnection() {
         });
 
         if (response.ok) {
-            Elements.apiTestResult.textContent = '✅ 连接成功';
-            Elements.apiTestResult.style.color = 'var(--secondary-color)';
+            Elements.openaiTestResult.textContent = '✅ 连接成功';
+            Elements.openaiTestResult.style.color = 'var(--secondary-color)';
         } else {
-            Elements.apiTestResult.textContent = '❌ API Key无效';
-            Elements.apiTestResult.style.color = 'var(--error-color)';
+            Elements.openaiTestResult.textContent = '❌ API Key无效';
+            Elements.openaiTestResult.style.color = 'var(--error-color)';
         }
     } catch (error) {
-        Elements.apiTestResult.textContent = '❌ 连接失败';
-        Elements.apiTestResult.style.color = 'var(--error-color)';
+        Elements.openaiTestResult.textContent = '❌ 连接失败';
+        Elements.openaiTestResult.style.color = 'var(--error-color)';
     } finally {
-        Elements.testApiBtn.disabled = false;
+        Elements.testOpenaiBtn.disabled = false;
+    }
+}
+
+async function testGeminiConnection() {
+    const apiKey = Elements.geminiApiKey.value.trim();
+    if (!apiKey) {
+        Elements.geminiTestResult.textContent = '❌ 请输入API Key';
+        Elements.geminiTestResult.style.color = 'var(--error-color)';
+        return;
+    }
+
+    Elements.testGeminiBtn.disabled = true;
+    Elements.geminiTestResult.textContent = '⏳ 测试中...';
+    Elements.geminiTestResult.style.color = 'var(--text-secondary)';
+
+    try {
+        // 测试Gemini API - 使用简单的模型列表API
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+
+        if (response.ok) {
+            Elements.geminiTestResult.textContent = '✅ 连接成功';
+            Elements.geminiTestResult.style.color = 'var(--secondary-color)';
+        } else {
+            Elements.geminiTestResult.textContent = '❌ API Key无效';
+            Elements.geminiTestResult.style.color = 'var(--error-color)';
+        }
+    } catch (error) {
+        Elements.geminiTestResult.textContent = '❌ 连接失败';
+        Elements.geminiTestResult.style.color = 'var(--error-color)';
+    } finally {
+        Elements.testGeminiBtn.disabled = false;
     }
 }
 
@@ -503,8 +568,14 @@ function handleViewModeChange() {
 // ==================== 翻译功能 ====================
 async function startTranslation() {
     // 验证API配置
-    if (!AppState.config.openaiApiKey) {
+    const provider = AppState.config.apiProvider;
+    if (provider === 'openai' && !AppState.config.openaiApiKey) {
         alert('❌ 请先在设置中配置OpenAI API Key');
+        openSettings();
+        return;
+    }
+    if (provider === 'gemini' && !AppState.config.geminiApiKey) {
+        alert('❌ 请先在设置中配置Gemini API Key');
         openSettings();
         return;
     }
@@ -592,6 +663,18 @@ async function translateChapter(chapterIndex) {
 }
 
 async function translateText(text) {
+    const provider = AppState.config.apiProvider;
+
+    if (provider === 'openai') {
+        return await translateWithOpenAI(text);
+    } else if (provider === 'gemini') {
+        return await translateWithGemini(text);
+    } else {
+        throw new Error(`不支持的翻译引擎: ${provider}`);
+    }
+}
+
+async function translateWithOpenAI(text) {
     const apiKey = AppState.config.openaiApiKey;
     const model = AppState.config.openaiModel;
 
@@ -637,6 +720,68 @@ ${text}
 
     const data = await response.json();
     return data.choices[0].message.content.trim();
+}
+
+async function translateWithGemini(text) {
+    const apiKey = AppState.config.geminiApiKey;
+    const model = AppState.config.geminiModel;
+
+    const styleInstructions = {
+        'faithful': '忠实于原文，准确传达原意',
+        'fluent': '流畅易读，符合中文表达习惯',
+        'literary': '保持文学性，注重语言的美感和韵味'
+    };
+
+    const prompt = `你是专业的文学翻译专家。请将以下${AppState.config.sourceLang}文本翻译成${AppState.config.targetLang}。
+
+翻译要求：
+1. ${styleInstructions[AppState.config.translationStyle]}
+2. 保持原文的语气和风格
+3. 不要添加任何额外的解释或注释
+4. 只返回翻译结果
+
+原文：
+${text}
+
+翻译：`;
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.3,
+                    maxOutputTokens: 1000
+                }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Gemini API错误: ${error}`);
+    }
+
+    const data = await response.json();
+
+    // Gemini响应结构
+    if (data.candidates && data.candidates.length > 0) {
+        const content = data.candidates[0].content;
+        if (content && content.parts && content.parts.length > 0) {
+            return content.parts[0].text.trim();
+        }
+    }
+
+    throw new Error('Gemini API返回了意外的响应格式');
 }
 
 function togglePause() {
