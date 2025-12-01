@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPUB Translator - AI驱动的电子书翻译工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">📚 EPUB Translator</h1>
+            <div class="header-actions">
+                <button id="settingsBtn" class="btn btn-secondary">
+                    <span>⚙️</span> 设置
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 侧边栏 - 目录 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>目录</h2>
+            </div>
+            <div class="book-info" id="bookInfo" style="display: none;">
+                <div class="info-item">
+                    <span class="info-label">书名：</span>
+                    <span id="bookTitle">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">作者：</span>
+                    <span id="bookAuthor">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">章节：</span>
+                    <span id="chapterCount">0</span>
+                </div>
+            </div>
+            <nav class="toc" id="tableOfContents">
+                <p class="toc-empty">请上传EPUB文件</p>
+            </nav>
+            <div class="sidebar-actions" id="sidebarActions" style="display: none;">
+                <button id="translateBtn" class="btn btn-primary btn-block">
+                    <span>🚀</span> 开始翻译
+                </button>
+                <button id="downloadBtn" class="btn btn-success btn-block" style="display: none;">
+                    <span>📥</span> 下载译文
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <!-- 上传区域 -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📖</div>
+                    <h2>上传EPUB文件</h2>
+                    <p>拖拽文件到此处，或点击选择文件</p>
+                    <input type="file" id="fileInput" accept=".epub" hidden>
+                    <button class="btn btn-primary" id="selectFileBtn">选择文件</button>
+                    <p class="upload-hint">支持EPUB 2.0和3.0格式，最大50MB</p>
+                </div>
+            </div>
+
+            <!-- 阅读区域 -->
+            <div class="reading-area" id="readingArea" style="display: none;">
+                <div class="reading-header">
+                    <h2 id="currentChapterTitle">Chapter 1</h2>
+                    <div class="view-controls">
+                        <label>
+                            <input type="radio" name="viewMode" value="original" checked>
+                            原文
+                        </label>
+                        <label>
+                            <input type="radio" name="viewMode" value="translation">
+                            译文
+                        </label>
+                        <label>
+                            <input type="radio" name="viewMode" value="parallel">
+                            对照
+                        </label>
+                    </div>
+                </div>
+                <div class="reading-content" id="readingContent">
+                    <!-- 章节内容将在这里渲染 -->
+                </div>
+            </div>
+
+            <!-- 翻译进度 -->
+            <div class="progress-panel" id="progressPanel" style="display: none;">
+                <div class="progress-header">
+                    <h3>翻译进度</h3>
+                    <button id="pauseBtn" class="btn btn-small">暂停</button>
+                </div>
+                <div class="progress-info">
+                    <div class="progress-text">
+                        <span id="progressStatus">准备中...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span id="progressDetails">已翻译：0 / 0 段</span>
+                        <span id="progressCost">预计成本：$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 设置模态框 -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ 翻译设置</h2>
+                <button class="modal-close" id="closeSettings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- API配置 -->
+                <section class="settings-section">
+                    <h3>翻译引擎</h3>
+                    <div class="form-group">
+                        <label>选择引擎：</label>
+                        <select id="apiProvider" class="form-control">
+                            <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+                            <option value="anthropic" disabled>Anthropic Claude (即将支持)</option>
+                            <option value="gemini" disabled>Google Gemini (即将支持)</option>
+                        </select>
+                    </div>
+
+                    <div id="openaiConfig">
+                        <div class="form-group">
+                            <label>API Key：</label>
+                            <input type="password" id="openaiApiKey" class="form-control"
+                                   placeholder="sk-...">
+                            <small>您的API Key仅保存在本地浏览器，不会上传到服务器</small>
+                        </div>
+                        <div class="form-group">
+                            <label>模型：</label>
+                            <select id="openaiModel" class="form-control">
+                                <option value="gpt-4o">GPT-4o (高质量)</option>
+                                <option value="gpt-4o-mini" selected>GPT-4o-mini (经济实惠)</option>
+                            </select>
+                        </div>
+                        <button id="testApiBtn" class="btn btn-secondary">测试连接</button>
+                        <span id="apiTestResult"></span>
+                    </div>
+                </section>
+
+                <!-- 翻译设置 -->
+                <section class="settings-section">
+                    <h3>翻译选项</h3>
+                    <div class="form-group">
+                        <label>源语言：</label>
+                        <select id="sourceLang" class="form-control">
+                            <option value="auto">自动检测</option>
+                            <option value="en" selected>English</option>
+                            <option value="ja">日本語</option>
+                            <option value="ko">한국어</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>目标语言：</label>
+                        <select id="targetLang" class="form-control">
+                            <option value="zh-CN" selected>简体中文</option>
+                            <option value="zh-TW">繁體中文</option>
+                            <option value="en">English</option>
+                            <option value="ja">日本語</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>翻译风格：</label>
+                        <select id="translationStyle" class="form-control">
+                            <option value="faithful">忠实原文（直译）</option>
+                            <option value="fluent" selected>流畅易读（意译）</option>
+                            <option value="literary">文学性翻译</option>
+                        </select>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettingsBtn" class="btn btn-primary">保存设置</button>
+                <button id="cancelSettingsBtn" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载提示 -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">加载中...</p>
+    </div>
+
+    <!-- 引入JSZip库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- 应用脚本 -->
+    <script src="app.js"></script>
+</body>
+</html>
